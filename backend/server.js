@@ -1,36 +1,25 @@
-// ==========================================================
-// Blood Donor Management System - Backend Server
-// ----------------------------------------------------------
-// Entry point of the application.
-// Creates the Express server, applies middleware, and
-// defines two basic routes used to verify the server runs.
-//
-// NOTE: Database connection is added in a later stage.
-// ==========================================================
-
-// ---------- 1. LOAD ENVIRONMENT VARIABLES ----------
-// Must run FIRST so process.env is populated before use.
+// 1. Load environment variables FIRST, before anything reads process.env
 require('dotenv').config();
 
-// ---------- 2. IMPORT PACKAGES ----------
+// 2. Third-party packages
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 
-// ---------- 3. CREATE THE EXPRESS APPLICATION ----------
+// 3. Local modules
+const connectDB = require('./config/db');
+
+// 4. Connect to MongoDB Atlas
+connectDB();
+
+// 5. Initialise Express
 const app = express();
 
-// ---------- 4. MIDDLEWARE ----------
-// cors(): allows the frontend (hosted on a different domain)
-// to send requests to this backend.
-app.use(cors());
+// 6. Global middleware
+app.use(cors());              // allow the Netlify frontend to call this API
+app.use(express.json());      // parse incoming JSON request bodies
 
-// express.json(): reads incoming JSON request bodies and
-// makes them available as req.body.
-app.use(express.json());
-
-// ---------- 5. ROUTES ----------
-
-// Welcome route - confirms the API is reachable.
+// 7. Root route
 app.get('/', (req, res) => {
   res.json({
     success: true,
@@ -39,24 +28,34 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check route - used to verify the server is alive.
+// 8. Health check route - now also reports database status
 app.get('/api/health', (req, res) => {
+  const dbStates = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting'
+  };
+
+  const state = mongoose.connection.readyState;
+
   res.json({
     success: true,
     message: 'Server is running',
+    database: {
+      status: dbStates[state] || 'unknown',
+      readyState: state,
+      name: mongoose.connection.name || null,
+      host: mongoose.connection.host || null
+    },
     timestamp: new Date().toISOString()
   });
 });
 
-// ---------- 6. START THE SERVER ----------
-// Use the port provided by the hosting environment,
-// or fall back to 5000 when running locally.
+// 9. Start the server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log('==============================================');
-  console.log('  Blood Donor Management System - Backend');
-  console.log(`  Server running on: http://localhost:${PORT}`);
-  console.log('  Press CTRL + C to stop the server');
-  console.log('==============================================');
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`   Local: http://localhost:${PORT}`);
 });
