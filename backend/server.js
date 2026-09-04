@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 
 // 3. Local modules
 const connectDB = require('./config/db');
+const donorRoutes = require('./routes/donorRoutes');   // <-- NEW
 
 // 4. Connect to MongoDB Atlas
 connectDB();
@@ -52,7 +53,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 9. Start the server
+// 9. API routes (mounted)
+//    Every donor endpoint lives under the /api/donors prefix.
+app.use('/api/donors', donorRoutes);                   // <-- NEW
+
+// 10. Start the server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
