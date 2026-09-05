@@ -9,7 +9,10 @@ const mongoose = require('mongoose');
 // 3. Local modules
 const connectDB = require('./config/db');
 const donorRoutes = require('./routes/donorRoutes');
-const requestRoutes = require('./routes/requestRoutes');   // <-- NEW
+const requestRoutes = require('./routes/requestRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const statsRoutes = require('./routes/statsRoutes');
+const { notFound, errorHandler } = require('./middleware/errorHandler');   // <-- NEW
 
 // 4. Connect to MongoDB Atlas
 connectDB();
@@ -59,9 +62,17 @@ app.get('/api/health', (req, res) => {
 app.use('/api/donors', donorRoutes);
 
 //    Every blood request endpoint lives under the /api/requests prefix.
-app.use('/api/requests', requestRoutes);                   // <-- NEW
+app.use('/api/requests', requestRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/stats', statsRoutes);
 
-// 10. Start the server
+// 10. Error handling middleware - MUST come after all routes      <-- NEW BLOCK
+//     notFound catches any URL that matched no route above.
+//     errorHandler is the 4-argument safety net for everything else.
+app.use(notFound);
+app.use(errorHandler);
+
+// 11. Start the server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
