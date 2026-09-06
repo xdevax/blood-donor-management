@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home | Blood Donor Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ================= NAVBAR (identical on all 6 pages) ================= -->
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <a href="index.html" class="nav-brand">Blood Donor Management</a>
+        <button class="nav-toggle" id="navToggle" type="button" aria-label="Toggle navigation">&#9776;</button>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html" class="active">Home</a></li>
+          <li><a href="register.html">Register Donor</a></li>
+          <li><a href="donors.html">Find Donors</a></li>
+          <li><a href="request.html">New Request</a></li>
+          <li><a href="requests.html">Requests</a></li>
+          <li><a href="admin.html">Admin</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="container">
+      <h1>Find a Blood Donor, Faster</h1>
+      <p>
+        When a patient needs blood urgently, families lose critical hours phoning
+        around for a matching donor. This system keeps a searchable record of
+        registered donors and open blood requests, so hospitals and families can
+        find a contact by blood group and city in seconds instead of hours.
+      </p>
+      <div class="hero-actions">
+        <a href="register.html" class="btn btn-outline">Register as a Donor</a>
+        <a href="donors.html" class="btn btn-outline">Search Donors</a>
+        <a href="request.html" class="btn btn-outline">Raise a Blood Request</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+    <div class="container">
+
+      <!-- Feature cards -->
+      <section class="section">
+        <h2 class="page-title">What this system does</h2>
+        <p class="page-subtitle">Four core record-keeping functions.</p>
+
+        <div class="card-grid">
+          <article class="feature-card">
+            <h3>Donor Registration</h3>
+            <p>
+              Volunteers record their name, age, blood group, phone number and
+              city. Each donor sets their own availability status.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <h3>Search &amp; Filter</h3>
+            <p>
+              Filter the donor directory by blood group, city and availability
+              to shortlist the people worth calling first.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <h3>Blood Requests</h3>
+            <p>
+              Hospitals and families log a request with the patient name, units
+              required, hospital, city and an urgency level.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <h3>Request Tracking</h3>
+            <p>
+              Every request moves through Open, Fulfilled or Cancelled, so no
+              request is silently forgotten.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Quick links -->
+      <section class="section">
+        <div class="card">
+          <div class="card-header">
+            <h3>Quick Links</h3>
+          </div>
+          <div class="card-grid">
+            <div>
+              <h4>For donors</h4>
+              <p class="text-muted">Add yourself to the directory.</p>
+              <a href="register.html" class="btn btn-primary btn-sm">Register Donor</a>
+            </div>
+            <div>
+              <h4>For hospitals</h4>
+              <p class="text-muted">Create a new blood request.</p>
+              <a href="request.html" class="btn btn-primary btn-sm">New Request</a>
+            </div>
+            <div>
+              <h4>Browse donors</h4>
+              <p class="text-muted">Search the donor directory.</p>
+              <a href="donors.html" class="btn btn-secondary btn-sm">Find Donors</a>
+            </div>
+            <div>
+              <h4>Browse requests</h4>
+              <p class="text-muted">See open and closed requests.</p>
+              <a href="requests.html" class="btn btn-secondary btn-sm">View Requests</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scope notice -->
+      <section class="section">
+        <div class="notice-prototype">
+          <strong>Prototype notice:</strong> This is an academic prototype for a
+          Cloud Infrastructure and Architecture assignment. It stores and displays
+          records only. It does not assess whether any person is medically fit to
+          donate blood.
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ================= FOOTER (identical on all 6 pages) ================= -->
+  <footer class="footer">
+    <div class="container">
+      <p class="mb-0">&copy; 2026 Blood Donor Management System &mdash; Academic Project</p>
+      <p class="footer-disclaimer">
+        Disclaimer: This is a record-keeping prototype. It does not determine
+        medical eligibility to donate blood. Availability shown is self-declared
+        by donors and is not verified. Always consult a licensed blood bank or
+        medical professional.
+      </p>
+    </div>
+  </footer>
+
+  <!-- UI-only script: toggles the mobile navigation menu. No data logic. -->
+  <script>
+    document.getElementById('navToggle').addEventListener('click', function () {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | Blood Donor Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ================= NAVBAR (identical on all 6 pages) ================= -->
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <a href="index.html" class="nav-brand">Blood Donor Management</a>
+        <button class="nav-toggle" id="navToggle" type="button" aria-label="Toggle navigation">&#9776;</button>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="register.html">Register Donor</a></li>
+          <li><a href="donors.html">Find Donors</a></li>
+          <li><a href="request.html">New Request</a></li>
+          <li><a href="requests.html">Requests</a></li>
+          <li><a href="admin.html" class="active">Admin</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+    <div class="container">
+
+      <h1 class="page-title">Admin Panel</h1>
+      <p class="page-subtitle">
+        Sign in to view system-wide statistics for donors and blood requests.
+      </p>
+
+      <!-- CHAT 8 writes login errors / success alerts into this div. -->
+      <div id="message"></div>
+
+      <!-- ============ LOGIN PANEL (visible by default) ============ -->
+      <section id="loginSection">
+        <div class="card card-narrow">
+          <div class="card-header">
+            <h2>Admin Login</h2>
+          </div>
+
+          <form id="loginForm">
+
+            <div class="form-group">
+              <label for="username">Username <span class="required-mark">*</span></label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="Enter admin username"
+                autocomplete="username"
+                required>
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password <span class="required-mark">*</span></label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter admin password"
+                autocomplete="current-password"
+                required>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Log In</button>
+            </div>
+
+          </form>
+
+          <p class="form-hint mt-2">
+            Demo shortcut: while the backend is not connected, use the button
+            below to preview the dashboard layout.
+          </p>
+          <button type="button" class="btn btn-secondary btn-block btn-sm" id="previewDashboardBtn">
+            Preview Dashboard (placeholder data)
+          </button>
+        </div>
+      </section>
+
+      <!-- ============ DASHBOARD PANEL (hidden by default) ============ -->
+      <section id="dashboardSection" class="hidden">
+
+        <div class="notice-prototype">
+          <strong>Prototype notice:</strong> All numbers below are hardcoded
+          placeholders used to design the layout. They are not live data.
+        </div>
+
+        <!-- Stat cards -->
+        <div class="stat-grid">
+
+          <div class="stat-card">
+            <span class="stat-value" id="statsTotalDonors">128</span>
+            <span class="stat-label">Total Donors</span>
+          </div>
+
+          <div class="stat-card stat-success">
+            <span class="stat-value" id="statsAvailableDonors">94</span>
+            <span class="stat-label">Available Donors</span>
+          </div>
+
+          <div class="stat-card stat-info">
+            <span class="stat-value" id="statsTotalRequests">57</span>
+            <span class="stat-label">Total Requests</span>
+          </div>
+
+          <div class="stat-card stat-warning">
+            <span class="stat-value" id="statsOpenRequests">12</span>
+            <span class="stat-label">Open Requests</span>
+          </div>
+
+          <div class="stat-card stat-success">
+            <span class="stat-value" id="statsFulfilledRequests">39</span>
+            <span class="stat-label">Fulfilled</span>
+          </div>
+
+          <div class="stat-card stat-muted">
+            <span class="stat-value" id="statsCancelledRequests">6</span>
+            <span class="stat-label">Cancelled</span>
+          </div>
+
+        </div>
+
+        <!-- Donors by blood group -->
+        <section class="section mt-3">
+          <h2>Donors by Blood Group</h2>
+          <p class="page-subtitle">
+            How the registered donor pool is distributed across the eight groups.
+          </p>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Blood Group</th>
+                  <th>Registered Donors</th>
+                  <th>Available Now</th>
+                </tr>
+              </thead>
+
+              <!-- CHAT 8 will clear this tbody and insert real rows
+                   from GET /api/stats donorsByBloodGroup[]. -->
+              <tbody id="bloodGroupTableBody">
+                <tr>
+                  <td><span class="badge badge-blood">A+</span></td>
+                  <td>26</td>
+                  <td>19</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-blood">A-</span></td>
+                  <td>8</td>
+                  <td>5</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-blood">B+</span></td>
+                  <td>31</td>
+                  <td>24</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-blood">B-</span></td>
+                  <td>7</td>
+                  <td>4</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-blood">AB+</span></td>
+                  <td>11</td>
+                  <td>8</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-blood">AB-</span></td>
+                  <td>3</td>
+                  <td>2</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-blood">O+</span></td>
+                  <td>34</td>
+                  <td>26</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-blood">O-</span></td>
+                  <td>8</td>
+                  <td>6</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="table-caption">
+            Placeholder distribution &mdash; replaced with live counts in the
+            next stage.
+          </p>
+        </section>
+
+        <!-- Admin shortcuts -->
+        <section class="section">
+          <div class="card">
+            <div class="card-header">
+              <h3>Manage Records</h3>
+            </div>
+            <div class="form-actions" style="border-top: none; padding-top: 0; margin-top: 0;">
+              <a href="donors.html" class="btn btn-primary">Manage Donors</a>
+              <a href="requests.html" class="btn btn-primary">Manage Requests</a>
+              <button type="button" class="btn btn-secondary" id="logoutBtn">Log Out</button>
+            </div>
+          </div>
+        </section>
+
+      </section><!-- /#dashboardSection -->
+
+    </div>
+  </main>
+
+  <!-- ================= FOOTER (identical on all 6 pages) ================= -->
+  <footer class="footer">
+    <div class="container">
+      <p class="mb-0">&copy; 2026 Blood Donor Management System &mdash; Academic Project</p>
+      <p class="footer-disclaimer">
+        Disclaimer: This is a record-keeping prototype. It does not determine
+        medical eligibility to donate blood. Availability shown is self-declared
+        by donors and is not verified. Always consult a licensed blood bank or
+        medical professional.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ================= UI-ONLY SCRIPT =================
+       Two jobs only:
+         1. Toggle the mobile nav menu.
+         2. Swap between the login panel and the dashboard panel.
+       There is NO authentication here and NO API call.
+       CHAT 8 replaces the preview button with a real POST to
+       /api/admin/login and a sessionStorage flag.
+       ================================================== -->
+  <script>
+    // --- Mobile nav toggle (same as every other page) ---
+    document.getElementById('navToggle').addEventListener('click', function () {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+
+    // --- Grab the two panels once, reuse below ---
+    var loginSection = document.getElementById('loginSection');
+    var dashboardSection = document.getElementById('dashboardSection');
+
+    // Show dashboard, hide login
+    function showDashboard() {
+      loginSection.classList.add('hidden');
+      dashboardSection.classList.remove('hidden');
+      window.scrollTo(0, 0);
+    }
+
+    // Show login, hide dashboard
+    function showLogin() {
+      dashboardSection.classList.add('hidden');
+      loginSection.classList.remove('hidden');
+      window.scrollTo(0, 0);
+    }
+
+    // Preview button: layout demo only, no credentials checked.
+    document.getElementById('previewDashboardBtn').addEventListener('click', showDashboard);
+
+    // Log Out button: just returns to the login panel.
+    document.getElementById('logoutBtn').addEventListener('click', showLogin);
+
+    // The login form has no backend yet. preventDefault() stops the browser
+    // from reloading the page, which is the default action for a form submit.
+    document.getElementById('loginForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      showDashboard();
+    });
+  </script>
+
+</body>
+</html>

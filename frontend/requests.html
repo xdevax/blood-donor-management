@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blood Requests | Blood Donor Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ================= NAVBAR (identical on all 6 pages) ================= -->
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <a href="index.html" class="nav-brand">Blood Donor Management</a>
+        <button class="nav-toggle" id="navToggle" type="button" aria-label="Toggle navigation">&#9776;</button>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="register.html">Register Donor</a></li>
+          <li><a href="donors.html">Find Donors</a></li>
+          <li><a href="request.html">New Request</a></li>
+          <li><a href="requests.html" class="active">Requests</a></li>
+          <li><a href="admin.html">Admin</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+    <div class="container">
+
+      <h1 class="page-title">Blood Requests</h1>
+      <p class="page-subtitle">
+        Track every logged request through Open, Fulfilled or Cancelled.
+      </p>
+
+      <!-- CHAT 8 writes success / error alerts into this div. -->
+      <div id="message"></div>
+
+      <div class="notice-prototype">
+        <strong>Prototype notice:</strong> The rows below are hardcoded sample
+        data used to design the layout. Creating or closing a request here does
+        not contact any hospital, blood bank or donor.
+      </div>
+
+      <!-- ============ FILTER BAR ============ -->
+      <section class="filter-bar">
+        <div class="filter-row">
+
+          <div class="form-group">
+            <label for="filterStatus">Status</label>
+            <select id="filterStatus" name="filterStatus">
+              <option value="">All statuses</option>
+              <option value="Open">Open</option>
+              <option value="Fulfilled">Fulfilled</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="filterBloodGroup">Blood Group</label>
+            <select id="filterBloodGroup" name="filterBloodGroup">
+              <option value="">All blood groups</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="filterCity">City</label>
+            <input
+              type="text"
+              id="filterCity"
+              name="filterCity"
+              placeholder="e.g. Jaipur">
+          </div>
+
+          <div class="filter-actions">
+            <button type="button" class="btn btn-primary" id="searchBtn">Search</button>
+            <button type="button" class="btn btn-secondary" id="resetBtn">Reset</button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============ LOADING STATE (hidden until CHAT 8) ============ -->
+      <div class="loading hidden" id="loadingState">
+        <div class="spinner"></div>
+        <p class="mb-0">Loading requests...</p>
+      </div>
+
+      <!-- ============ EMPTY STATE (hidden by default) ============ -->
+      <div class="empty-state hidden" id="emptyState">
+        <h3>No requests found</h3>
+        <p class="mb-0">
+          No blood requests match your filters. Try selecting "All statuses" or
+          clearing the city field.
+        </p>
+      </div>
+
+      <!-- ============ RESULTS TABLE ============ -->
+      <section id="requestTableSection">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Blood Group</th>
+                <th>Units</th>
+                <th>Hospital</th>
+                <th>City</th>
+                <th>Urgency</th>
+                <th>Status</th>
+                <th>Contact</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <!-- CHAT 8 will clear this tbody and insert real rows.
+                 The 3 rows below are hardcoded placeholders only. -->
+            <tbody id="requestTableBody">
+
+              <tr>
+                <td>Anita Desai</td>
+                <td><span class="badge badge-blood">O+</span></td>
+                <td>2</td>
+                <td>SMS Hospital</td>
+                <td>Jaipur</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td><span class="badge badge-open">Open</span></td>
+                <td>
+                  Dr. Mehta<br>
+                  <span class="text-muted">9876543210</span>
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-secondary btn-sm">Update</button>
+                    <button type="button" class="btn btn-danger btn-sm">Delete</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td>Imran Qureshi</td>
+                <td><span class="badge badge-blood">B-</span></td>
+                <td>1</td>
+                <td>Fortis Hospital</td>
+                <td>Kochi</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td><span class="badge badge-fulfilled">Fulfilled</span></td>
+                <td>
+                  Sister Rose<br>
+                  <span class="text-muted">9812345678</span>
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-secondary btn-sm">Update</button>
+                    <button type="button" class="btn btn-danger btn-sm">Delete</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td>Kavya Reddy</td>
+                <td><span class="badge badge-blood">AB+</span></td>
+                <td>4</td>
+                <td>Apollo Hospital</td>
+                <td>Hyderabad</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td><span class="badge badge-cancelled">Cancelled</span></td>
+                <td>
+                  Mr. Rao<br>
+                  <span class="text-muted">9001122334</span>
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-secondary btn-sm">Update</button>
+                    <button type="button" class="btn btn-danger btn-sm">Delete</button>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+
+        <p class="table-caption" id="requestCount">
+          Showing 3 placeholder requests.
+        </p>
+      </section>
+
+      <!-- ====== STATUS UPDATE PANEL (hidden by default, wired in CHAT 8) ====== -->
+      <section class="card hidden mt-3" id="updateRequestSection">
+        <div class="card-header">
+          <h2>Update Request</h2>
+        </div>
+
+        <form id="updateRequestForm">
+          <!-- CHAT 8 stores the request's _id here before saving. -->
+          <input type="hidden" id="updateRequestId" name="updateRequestId">
+
+          <p class="text-muted" id="updateRequestPatient">
+            Editing request for: <strong>&mdash;</strong>
+          </p>
+
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label for="updateStatus">Status <span class="required-mark">*</span></label>
+              <select id="updateStatus" name="updateStatus" required>
+                <option value="Open">Open</option>
+                <option value="Fulfilled">Fulfilled</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="updateUrgency">Urgency <span class="required-mark">*</span></label>
+              <select id="updateUrgency" name="updateUrgency" required>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="updateUnitsRequired">Units Required <span class="required-mark">*</span></label>
+              <input type="number" id="updateUnitsRequired" name="updateUnitsRequired" min="1" max="10" required>
+            </div>
+
+            <div class="form-group">
+              <label for="updateNeededBy">Needed By <span class="text-muted">(optional)</span></label>
+              <input type="date" id="updateNeededBy" name="updateNeededBy">
+            </div>
+
+          </div><!-- /.form-grid -->
+
+          <div class="form-group mt-2">
+            <label for="updateNotes">Notes <span class="text-muted">(optional)</span></label>
+            <textarea id="updateNotes" name="updateNotes" maxlength="300"></textarea>
+            <span class="form-hint">Maximum 300 characters.</span>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="saveRequestBtn">Save Changes</button>
+            <button type="button" class="btn btn-secondary" id="cancelUpdateBtn">Cancel</button>
+          </div>
+        </form>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ================= FOOTER (identical on all 6 pages) ================= -->
+  <footer class="footer">
+    <div class="container">
+      <p class="mb-0">&copy; 2026 Blood Donor Management System &mdash; Academic Project</p>
+      <p class="footer-disclaimer">
+        Disclaimer: This is a record-keeping prototype. It does not determine
+        medical eligibility to donate blood. Availability shown is self-declared
+        by donors and is not verified. Always consult a licensed blood bank or
+        medical professional.
+      </p>
+    </div>
+  </footer>
+
+  <!-- UI-only script: toggles the mobile navigation menu. No data logic. -->
+  <script>
+    document.getElementById('navToggle').addEventListener('click', function () {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  </script>
+
+</body>
+</html>

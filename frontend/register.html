@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register Donor | Blood Donor Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ================= NAVBAR (identical on all 6 pages) ================= -->
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <a href="index.html" class="nav-brand">Blood Donor Management</a>
+        <button class="nav-toggle" id="navToggle" type="button" aria-label="Toggle navigation">&#9776;</button>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="register.html" class="active">Register Donor</a></li>
+          <li><a href="donors.html">Find Donors</a></li>
+          <li><a href="request.html">New Request</a></li>
+          <li><a href="requests.html">Requests</a></li>
+          <li><a href="admin.html">Admin</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+    <div class="container">
+
+      <h1 class="page-title">Register as a Blood Donor</h1>
+      <p class="page-subtitle">
+        Add your details to the donor directory so hospitals and families can
+        contact you when your blood group is needed in your city.
+      </p>
+
+      <!-- CHAT 8 writes success / error alerts into this div.
+           It is empty and invisible until a class is added to it. -->
+      <div id="message"></div>
+
+      <div class="notice-prototype">
+        <strong>Prototype notice:</strong> This form records self-declared
+        information only. It does not check whether you are medically eligible
+        to donate blood. Please consult a licensed blood bank before donating.
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Donor Details</h2>
+        </div>
+
+        <!-- novalidate is NOT used, so the browser's built-in HTML5 checks run.
+             These are convenience checks only - the authoritative validation
+             lives in the Mongoose schema on the server. -->
+        <form id="donorForm">
+
+          <div class="form-grid">
+
+            <!-- Name -->
+            <div class="form-group">
+              <label for="name">Full Name <span class="required-mark">*</span></label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="e.g. Devan Sharma"
+                minlength="3"
+                maxlength="50"
+                required>
+              <span class="form-hint">Between 3 and 50 characters.</span>
+            </div>
+
+            <!-- Age -->
+            <div class="form-group">
+              <label for="age">Age <span class="required-mark">*</span></label>
+              <input
+                type="number"
+                id="age"
+                name="age"
+                placeholder="e.g. 21"
+                min="18"
+                max="65"
+                required>
+              <span class="form-hint">Donors must be between 18 and 65.</span>
+            </div>
+
+            <!-- Gender -->
+            <div class="form-group">
+              <label for="gender">Gender <span class="required-mark">*</span></label>
+              <select id="gender" name="gender" required>
+                <option value="">-- Select gender --</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <!-- Blood group -->
+            <div class="form-group">
+              <label for="bloodGroup">Blood Group <span class="required-mark">*</span></label>
+              <select id="bloodGroup" name="bloodGroup" required>
+                <option value="">-- Select blood group --</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+              <span class="form-hint">Stored exactly as shown, e.g. O+.</span>
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group">
+              <label for="phone">Phone Number <span class="required-mark">*</span></label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                placeholder="10 digits, e.g. 9876543210"
+                pattern="[0-9]{10}"
+                maxlength="10"
+                required>
+              <span class="form-hint">Exactly 10 digits, no spaces or country code.</span>
+            </div>
+
+            <!-- Email (optional) -->
+            <div class="form-group">
+              <label for="email">Email <span class="text-muted">(optional)</span></label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="e.g. devan@example.com">
+              <span class="form-hint">Used only as a backup contact.</span>
+            </div>
+
+            <!-- City -->
+            <div class="form-group">
+              <label for="city">City <span class="required-mark">*</span></label>
+              <input
+                type="text"
+                id="city"
+                name="city"
+                placeholder="e.g. Jaipur"
+                required>
+              <span class="form-hint">The city where you can donate.</span>
+            </div>
+
+            <!-- State (optional) -->
+            <div class="form-group">
+              <label for="state">State <span class="text-muted">(optional)</span></label>
+              <input
+                type="text"
+                id="state"
+                name="state"
+                placeholder="e.g. Rajasthan">
+            </div>
+
+            <!-- Last donation date (optional) -->
+            <div class="form-group">
+              <label for="lastDonationDate">Last Donation Date <span class="text-muted">(optional)</span></label>
+              <input
+                type="date"
+                id="lastDonationDate"
+                name="lastDonationDate">
+              <span class="form-hint">Leave blank if you have never donated.</span>
+            </div>
+
+          </div><!-- /.form-grid -->
+
+          <!-- Availability: checked by default, as specified -->
+          <div class="form-check mt-2">
+            <input
+              type="checkbox"
+              id="isAvailable"
+              name="isAvailable"
+              checked>
+            <label for="isAvailable">I am currently available to donate</label>
+          </div>
+          <span class="form-hint mb-2">
+            This is your own declaration. It is not verified by the system and
+            you can change it at any time.
+          </span>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">Register Donor</button>
+            <button type="reset" class="btn btn-secondary" id="resetBtn">Clear Form</button>
+            <a href="donors.html" class="btn btn-secondary">View All Donors</a>
+          </div>
+
+        </form>
+      </div><!-- /.card -->
+
+    </div>
+  </main>
+
+  <!-- ================= FOOTER (identical on all 6 pages) ================= -->
+  <footer class="footer">
+    <div class="container">
+      <p class="mb-0">&copy; 2026 Blood Donor Management System &mdash; Academic Project</p>
+      <p class="footer-disclaimer">
+        Disclaimer: This is a record-keeping prototype. It does not determine
+        medical eligibility to donate blood. Availability shown is self-declared
+        by donors and is not verified. Always consult a licensed blood bank or
+        medical professional.
+      </p>
+    </div>
+  </footer>
+
+  <!-- UI-only script: toggles the mobile navigation menu. No data logic. -->
+  <script>
+    document.getElementById('navToggle').addEventListener('click', function () {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  </script>
+
+</body>
+</html>

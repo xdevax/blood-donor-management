@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Donors | Blood Donor Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ================= NAVBAR (identical on all 6 pages) ================= -->
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <a href="index.html" class="nav-brand">Blood Donor Management</a>
+        <button class="nav-toggle" id="navToggle" type="button" aria-label="Toggle navigation">&#9776;</button>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="register.html">Register Donor</a></li>
+          <li><a href="donors.html" class="active">Find Donors</a></li>
+          <li><a href="request.html">New Request</a></li>
+          <li><a href="requests.html">Requests</a></li>
+          <li><a href="admin.html">Admin</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+    <div class="container">
+
+      <h1 class="page-title">Donor Directory</h1>
+      <p class="page-subtitle">
+        Filter registered donors by blood group, city and self-declared availability.
+      </p>
+
+      <!-- CHAT 8 writes success / error alerts into this div. -->
+      <div id="message"></div>
+
+      <div class="notice-prototype">
+        <strong>Prototype notice:</strong> The rows below are hardcoded sample
+        data used to design the layout. Availability is self-declared by donors
+        and is not verified. This system does not assess medical eligibility.
+      </div>
+
+      <!-- ============ FILTER BAR ============ -->
+      <section class="filter-bar">
+        <div class="filter-row">
+
+          <div class="form-group">
+            <label for="filterBloodGroup">Blood Group</label>
+            <select id="filterBloodGroup" name="filterBloodGroup">
+              <option value="">All blood groups</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="filterCity">City</label>
+            <input
+              type="text"
+              id="filterCity"
+              name="filterCity"
+              placeholder="e.g. Jaipur">
+          </div>
+
+          <div class="form-group">
+            <label for="filterAvailability">Availability</label>
+            <select id="filterAvailability" name="filterAvailability">
+              <option value="">All donors</option>
+              <option value="true">Available only</option>
+              <option value="false">Unavailable only</option>
+            </select>
+          </div>
+
+          <div class="filter-actions">
+            <button type="button" class="btn btn-primary" id="searchBtn">Search</button>
+            <button type="button" class="btn btn-secondary" id="resetBtn">Reset</button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============ LOADING STATE (hidden until CHAT 8) ============ -->
+      <div class="loading hidden" id="loadingState">
+        <div class="spinner"></div>
+        <p class="mb-0">Loading donors...</p>
+      </div>
+
+      <!-- ============ EMPTY STATE (hidden by default) ============ -->
+      <div class="empty-state hidden" id="emptyState">
+        <h3>No donors found</h3>
+        <p class="mb-0">
+          No donors match your filters. Try clearing the city field or choosing
+          a different blood group.
+        </p>
+      </div>
+
+      <!-- ============ RESULTS TABLE ============ -->
+      <section id="donorTableSection">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Blood Group</th>
+                <th>Phone</th>
+                <th>City</th>
+                <th>Available</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <!-- CHAT 8 will clear this tbody and insert real rows.
+                 The 3 rows below are hardcoded placeholders only. -->
+            <tbody id="donorTableBody">
+
+              <tr>
+                <td>Devan Sharma</td>
+                <td>21</td>
+                <td>Male</td>
+                <td><span class="badge badge-blood">O+</span></td>
+                <td>9876543210</td>
+                <td>Jaipur</td>
+                <td><span class="badge badge-available">Available</span></td>
+                <td>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-secondary btn-sm">Edit</button>
+                    <button type="button" class="btn btn-danger btn-sm">Delete</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td>Priya Nair</td>
+                <td>28</td>
+                <td>Female</td>
+                <td><span class="badge badge-blood">A-</span></td>
+                <td>9812345678</td>
+                <td>Kochi</td>
+                <td><span class="badge badge-unavailable">Unavailable</span></td>
+                <td>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-secondary btn-sm">Edit</button>
+                    <button type="button" class="btn btn-danger btn-sm">Delete</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td>Rahul Verma</td>
+                <td>34</td>
+                <td>Male</td>
+                <td><span class="badge badge-blood">AB+</span></td>
+                <td>9001122334</td>
+                <td>Jaipur</td>
+                <td><span class="badge badge-available">Available</span></td>
+                <td>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-secondary btn-sm">Edit</button>
+                    <button type="button" class="btn btn-danger btn-sm">Delete</button>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+
+        <p class="table-caption" id="donorCount">
+          Showing 3 placeholder donors.
+        </p>
+      </section>
+
+      <!-- ============ EDIT PANEL (hidden by default, wired in CHAT 8) ============ -->
+      <section class="card hidden mt-3" id="editDonorSection">
+        <div class="card-header">
+          <h2>Edit Donor</h2>
+        </div>
+
+        <form id="editDonorForm">
+          <!-- CHAT 8 stores the donor's _id here before saving. -->
+          <input type="hidden" id="editDonorId" name="editDonorId">
+
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label for="editName">Full Name <span class="required-mark">*</span></label>
+              <input type="text" id="editName" name="editName" minlength="3" maxlength="50" required>
+            </div>
+
+            <div class="form-group">
+              <label for="editAge">Age <span class="required-mark">*</span></label>
+              <input type="number" id="editAge" name="editAge" min="18" max="65" required>
+            </div>
+
+            <div class="form-group">
+              <label for="editGender">Gender <span class="required-mark">*</span></label>
+              <select id="editGender" name="editGender" required>
+                <option value="">-- Select gender --</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="editBloodGroup">Blood Group <span class="required-mark">*</span></label>
+              <select id="editBloodGroup" name="editBloodGroup" required>
+                <option value="">-- Select blood group --</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="editPhone">Phone Number <span class="required-mark">*</span></label>
+              <input type="tel" id="editPhone" name="editPhone" pattern="[0-9]{10}" maxlength="10" required>
+            </div>
+
+            <div class="form-group">
+              <label for="editEmail">Email <span class="text-muted">(optional)</span></label>
+              <input type="email" id="editEmail" name="editEmail">
+            </div>
+
+            <div class="form-group">
+              <label for="editCity">City <span class="required-mark">*</span></label>
+              <input type="text" id="editCity" name="editCity" required>
+            </div>
+
+            <div class="form-group">
+              <label for="editState">State <span class="text-muted">(optional)</span></label>
+              <input type="text" id="editState" name="editState">
+            </div>
+
+            <div class="form-group">
+              <label for="editLastDonationDate">Last Donation Date <span class="text-muted">(optional)</span></label>
+              <input type="date" id="editLastDonationDate" name="editLastDonationDate">
+            </div>
+
+          </div><!-- /.form-grid -->
+
+          <div class="form-check mt-2">
+            <input type="checkbox" id="editIsAvailable" name="editIsAvailable">
+            <label for="editIsAvailable">Currently available to donate</label>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="updateDonorBtn">Save Changes</button>
+            <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+          </div>
+        </form>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ================= FOOTER (identical on all 6 pages) ================= -->
+  <footer class="footer">
+    <div class="container">
+      <p class="mb-0">&copy; 2026 Blood Donor Management System &mdash; Academic Project</p>
+      <p class="footer-disclaimer">
+        Disclaimer: This is a record-keeping prototype. It does not determine
+        medical eligibility to donate blood. Availability shown is self-declared
+        by donors and is not verified. Always consult a licensed blood bank or
+        medical professional.
+      </p>
+    </div>
+  </footer>
+
+  <!-- UI-only script: toggles the mobile navigation menu. No data logic. -->
+  <script>
+    document.getElementById('navToggle').addEventListener('click', function () {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Blood Request | Blood Donor Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ================= NAVBAR (identical on all 6 pages) ================= -->
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <a href="index.html" class="nav-brand">Blood Donor Management</a>
+        <button class="nav-toggle" id="navToggle" type="button" aria-label="Toggle navigation">&#9776;</button>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="register.html">Register Donor</a></li>
+          <li><a href="donors.html">Find Donors</a></li>
+          <li><a href="request.html" class="active">New Request</a></li>
+          <li><a href="requests.html">Requests</a></li>
+          <li><a href="admin.html">Admin</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+    <div class="container">
+
+      <h1 class="page-title">Create a Blood Request</h1>
+      <p class="page-subtitle">
+        Log a request so it appears in the shared request list and can be
+        tracked until it is fulfilled or cancelled.
+      </p>
+
+      <!-- CHAT 8 writes success / error alerts into this div. -->
+      <div id="message"></div>
+
+      <div class="notice-prototype">
+        <strong>Prototype notice:</strong> Submitting this form only creates a
+        record in the system. It does not contact any hospital, blood bank or
+        donor, and it does not reserve blood units.
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Request Details</h2>
+        </div>
+
+        <!-- HTML5 attributes below give instant browser feedback.
+             The authoritative validation is the Mongoose schema server-side. -->
+        <form id="requestForm">
+
+          <div class="form-grid">
+
+            <!-- Patient name -->
+            <div class="form-group">
+              <label for="patientName">Patient Name <span class="required-mark">*</span></label>
+              <input
+                type="text"
+                id="patientName"
+                name="patientName"
+                placeholder="e.g. Anita Desai"
+                minlength="3"
+                maxlength="50"
+                required>
+              <span class="form-hint">Between 3 and 50 characters.</span>
+            </div>
+
+            <!-- Blood group -->
+            <div class="form-group">
+              <label for="bloodGroup">Blood Group Required <span class="required-mark">*</span></label>
+              <select id="bloodGroup" name="bloodGroup" required>
+                <option value="">-- Select blood group --</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+
+            <!-- Units required -->
+            <div class="form-group">
+              <label for="unitsRequired">Units Required <span class="required-mark">*</span></label>
+              <input
+                type="number"
+                id="unitsRequired"
+                name="unitsRequired"
+                placeholder="e.g. 2"
+                min="1"
+                max="10"
+                required>
+              <span class="form-hint">Between 1 and 10 units.</span>
+            </div>
+
+            <!-- Hospital -->
+            <div class="form-group">
+              <label for="hospitalName">Hospital Name <span class="required-mark">*</span></label>
+              <input
+                type="text"
+                id="hospitalName"
+                name="hospitalName"
+                placeholder="e.g. SMS Hospital"
+                required>
+            </div>
+
+            <!-- City -->
+            <div class="form-group">
+              <label for="city">City <span class="required-mark">*</span></label>
+              <input
+                type="text"
+                id="city"
+                name="city"
+                placeholder="e.g. Jaipur"
+                required>
+              <span class="form-hint">Used to match donors in the same city.</span>
+            </div>
+
+            <!-- Contact person -->
+            <div class="form-group">
+              <label for="contactPerson">Contact Person <span class="required-mark">*</span></label>
+              <input
+                type="text"
+                id="contactPerson"
+                name="contactPerson"
+                placeholder="e.g. Dr. Mehta"
+                required>
+              <span class="form-hint">Who should a donor ask for?</span>
+            </div>
+
+            <!-- Contact phone -->
+            <div class="form-group">
+              <label for="contactPhone">Contact Phone <span class="required-mark">*</span></label>
+              <input
+                type="tel"
+                id="contactPhone"
+                name="contactPhone"
+                placeholder="10 digits, e.g. 9876543210"
+                pattern="[0-9]{10}"
+                maxlength="10"
+                required>
+              <span class="form-hint">Exactly 10 digits, no spaces or country code.</span>
+            </div>
+
+            <!-- Urgency: default Medium -->
+            <div class="form-group">
+              <label for="urgency">Urgency <span class="required-mark">*</span></label>
+              <select id="urgency" name="urgency" required>
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+              </select>
+              <span class="form-hint">Defaults to Medium.</span>
+            </div>
+
+            <!-- Status: default Open -->
+            <div class="form-group">
+              <label for="status">Status <span class="required-mark">*</span></label>
+              <select id="status" name="status" required>
+                <option value="Open" selected>Open</option>
+                <option value="Fulfilled">Fulfilled</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+              <span class="form-hint">New requests normally start as Open.</span>
+            </div>
+
+            <!-- Needed by (optional) -->
+            <div class="form-group">
+              <label for="neededBy">Needed By <span class="text-muted">(optional)</span></label>
+              <input
+                type="date"
+                id="neededBy"
+                name="neededBy">
+              <span class="form-hint">The date the units are needed.</span>
+            </div>
+
+          </div><!-- /.form-grid -->
+
+          <!-- Notes: full width, so it sits outside the grid -->
+          <div class="form-group mt-2">
+            <label for="notes">Notes <span class="text-muted">(optional)</span></label>
+            <textarea
+              id="notes"
+              name="notes"
+              maxlength="300"
+              placeholder="e.g. Surgery scheduled Monday morning, ward 4B."></textarea>
+            <span class="form-hint">Maximum 300 characters.</span>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">Create Request</button>
+            <button type="reset" class="btn btn-secondary" id="resetBtn">Clear Form</button>
+            <a href="requests.html" class="btn btn-secondary">View All Requests</a>
+          </div>
+
+        </form>
+      </div><!-- /.card -->
+
+    </div>
+  </main>
+
+  <!-- ================= FOOTER (identical on all 6 pages) ================= -->
+  <footer class="footer">
+    <div class="container">
+      <p class="mb-0">&copy; 2026 Blood Donor Management System &mdash; Academic Project</p>
+      <p class="footer-disclaimer">
+        Disclaimer: This is a record-keeping prototype. It does not determine
+        medical eligibility to donate blood. Availability shown is self-declared
+        by donors and is not verified. Always consult a licensed blood bank or
+        medical professional.
+      </p>
+    </div>
+  </footer>
+
+  <!-- UI-only script: toggles the mobile navigation menu. No data logic. -->
+  <script>
+    document.getElementById('navToggle').addEventListener('click', function () {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  </script>
+
+</body>
+</html>
