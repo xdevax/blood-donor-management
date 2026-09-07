@@ -79,9 +79,7 @@
             Demo shortcut: while the backend is not connected, use the button
             below to preview the dashboard layout.
           </p>
-          <button type="button" class="btn btn-secondary btn-block btn-sm" id="previewDashboardBtn">
-            Preview Dashboard (placeholder data)
-          </button>
+          
         </div>
       </section>
 
@@ -249,11 +247,7 @@
     var dashboardSection = document.getElementById('dashboardSection');
 
     // Show dashboard, hide login
-    function showDashboard() {
-      loginSection.classList.add('hidden');
-      dashboardSection.classList.remove('hidden');
-      window.scrollTo(0, 0);
-    }
+    
 
     // Show login, hide dashboard
     function showLogin() {
@@ -262,19 +256,18 @@
       window.scrollTo(0, 0);
     }
 
-    // Preview button: layout demo only, no credentials checked.
-    document.getElementById('previewDashboardBtn').addEventListener('click', showDashboard);
+    
+    
 
     // Log Out button: just returns to the login panel.
     document.getElementById('logoutBtn').addEventListener('click', showLogin);
 
     // The login form has no backend yet. preventDefault() stops the browser
     // from reloading the page, which is the default action for a form submit.
-    document.getElementById('loginForm').addEventListener('submit', function (event) {
-      event.preventDefault();
-      showDashboard();
-    });
+    
   </script>
+    <script src="js/config.js"></script>
+  <script src="js/admin.js"></script>
 
 </body>
 </html>
