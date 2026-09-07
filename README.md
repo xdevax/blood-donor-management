@@ -84,7 +84,7 @@ blood-donor-management/
 | Resource | URL |
 |---|---|
 | Live Frontend (Netlify) | _To be added_ |
-| Live Backend API (Render) | _To be added_ |
+| Live Backend API (Render) | https://blood-donor-api-q1jg.onrender.com |
 | GitHub Repository | https://github.com/xdevax/blood-donor-management |
 
 ---
