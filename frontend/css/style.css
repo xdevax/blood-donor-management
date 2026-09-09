@@ -875,3 +875,15 @@ tbody tr:hover {
     border: 1px solid #999;
   }
 }
+/* Make donor-table Edit buttons visible on the white table background. */
+.table-wrapper .btn-outline {
+  background-color: #fff;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.table-wrapper .btn-outline:hover {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
