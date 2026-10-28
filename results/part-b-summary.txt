@@ -1,0 +1,10 @@
+--- results/part-b-1-instance.txt
+Failed requests:        0
+Requests per second:    97.26 [#/sec] (mean)
+Time per request:       514.088 [ms] (mean)
+Time per request:       10.282 [ms] (mean, across all concurrent requests)
+--- results/part-b-3-instances.txt
+Failed requests:        0
+Requests per second:    107.93 [#/sec] (mean)
+Time per request:       463.269 [ms] (mean)
+Time per request:       9.265 [ms] (mean, across all concurrent requests)

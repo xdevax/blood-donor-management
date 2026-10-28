@@ -1,0 +1,29 @@
+flowchart LR
+  U["Users: hospitals, blood banks,<br/>emergency coordinators, donors"] --> FE["Frontend (HTML/CSS/vanilla JS)<br/>Netlify"]
+  FE -->|"HTTP :8080 (local scaled setup; production calls Render)"| NG["Nginx load balancer<br/>container nginx-lb<br/>host :8080 → container :80<br/>round-robin + failover"]
+
+  subgraph DC["Docker Compose host (WSL2 Ubuntu, Docker Desktop)"]
+    NG
+    B1["backend1<br/>Node.js/Express<br/>:5001 → :5000"]
+    B2["backend2<br/>Node.js/Express<br/>:5002 → :5000"]
+    B3["backend3<br/>Node.js/Express<br/>:5003 → :5000"]
+  end
+
+  NG --> B1
+  NG --> B2
+  NG --> B3
+  B1 -->|Mongoose| DB[("MongoDB Atlas<br/>blood donor database")]
+  B2 -->|Mongoose| DB
+  B3 -->|Mongoose| DB
+
+  AB["ApacheBench (ab)<br/>load-testing tool"] -.->|"1000 req, c=50"| NG
+
+  NG -. "overflow / backup<br/>(cloud bursting)" .-> RB["CLOUD BURST: Render<br/>blood-donor-api-q1jg.onrender.com<br/>auto-scaled extra instances"]
+  RB -.->|Mongoose| DB
+
+  classDef burst fill:#ffcccc,stroke:#d00000,stroke-width:3px,color:#000
+  classDef lb fill:#d6eaff,stroke:#0050b3,color:#000
+  classDef be fill:#e6ffe6,stroke:#2e7d32,color:#000
+  class RB burst
+  class NG lb
+  class B1,B2,B3 be

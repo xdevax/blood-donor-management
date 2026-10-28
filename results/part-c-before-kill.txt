@@ -1,0 +1,6 @@
+Killing backend2 at 16:27:57.089463193
+Complete requests:      1000
+Failed requests:        306
+Non-2xx responses:      306
+Requests per second:    73.57 [#/sec] (mean)
+Nginx 502 count: 41

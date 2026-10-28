@@ -1,0 +1,36 @@
+== Part (a): 12 requests through Nginx :8080 ==
+{"instance":"backend3","pid":1,"time":"2026-10-28T16:26:43.494Z"}
+{"instance":"backend1","pid":1,"time":"2026-10-28T16:26:43.538Z"}
+{"instance":"backend2","pid":1,"time":"2026-10-28T16:26:43.581Z"}
+{"instance":"backend3","pid":1,"time":"2026-10-28T16:26:43.620Z"}
+{"instance":"backend1","pid":1,"time":"2026-10-28T16:26:43.673Z"}
+{"instance":"backend2","pid":1,"time":"2026-10-28T16:26:43.709Z"}
+{"instance":"backend3","pid":1,"time":"2026-10-28T16:26:43.741Z"}
+{"instance":"backend1","pid":1,"time":"2026-10-28T16:26:43.788Z"}
+{"instance":"backend2","pid":1,"time":"2026-10-28T16:26:43.824Z"}
+{"instance":"backend3","pid":1,"time":"2026-10-28T16:26:43.866Z"}
+{"instance":"backend1","pid":1,"time":"2026-10-28T16:26:43.906Z"}
+{"instance":"backend2","pid":1,"time":"2026-10-28T16:26:43.939Z"}
+== Count per instance ==
+      4 backend1
+      4 backend2
+      4 backend3
+== Nginx access log (upstream chosen) ==
+172.18.0.1 -> 172.18.0.3:5000 [200/200] 0.023 "GET /api/whoami HTTP/1.1"
+172.18.0.1 -> 172.18.0.2:5000 [200/200] 0.002 "GET /api/whoami HTTP/1.1"
+172.18.0.1 -> 172.18.0.4:5000 [200/200] 0.004 "GET /api/whoami HTTP/1.1"
+172.18.0.1 -> 172.18.0.3:5000 [200/200] 0.002 "GET /api/whoami HTTP/1.1"
+172.18.0.1 -> 172.18.0.2:5000 [200/200] 0.002 "GET /api/whoami HTTP/1.1"
+172.18.0.1 -> 172.18.0.4:5000 [200/200] 0.002 "GET /api/whoami HTTP/1.1"
+172.18.0.1 -> 172.18.0.3:5000 [200/200] 0.001 "GET /api/whoami HTTP/1.1"
+172.18.0.1 -> 172.18.0.2:5000 [200/200] 0.001 "GET /api/whoami HTTP/1.1"
+172.18.0.1 -> 172.18.0.4:5000 [200/200] 0.002 "GET /api/whoami HTTP/1.1"
+172.18.0.1 -> 172.18.0.3:5000 [200/200] 0.002 "GET /api/whoami HTTP/1.1"
+172.18.0.1 -> 172.18.0.2:5000 [200/200] 0.000 "GET /api/whoami HTTP/1.1"
+172.18.0.1 -> 172.18.0.4:5000 [200/200] 0.001 "GET /api/whoami HTTP/1.1"
+== Container status ==
+NAME       IMAGE                 COMMAND                  SERVICE    CREATED         STATUS          PORTS
+backend1   blood-donor-backend   "docker-entrypoint.s…"   backend1   2 minutes ago   Up 2 minutes    0.0.0.0:5001->5000/tcp, [::]:5001->5000/tcp
+backend2   blood-donor-backend   "docker-entrypoint.s…"   backend2   2 minutes ago   Up 2 minutes    0.0.0.0:5002->5000/tcp, [::]:5002->5000/tcp
+backend3   blood-donor-backend   "docker-entrypoint.s…"   backend3   2 minutes ago   Up 2 minutes    0.0.0.0:5003->5000/tcp, [::]:5003->5000/tcp
+nginx-lb   nginx:alpine          "/docker-entrypoint.…"   nginx      2 minutes ago   Up 33 seconds   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp

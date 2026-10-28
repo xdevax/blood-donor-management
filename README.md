@@ -241,3 +241,36 @@ GitHub: [@xdevax](https://github.com/xdevax)
 ## License
 
 This project was created for academic purposes.
+
+
+---
+
+## Running with Docker + Nginx load balancer
+
+Requires Docker Desktop with WSL2 integration enabled, and `backend/.env` with a valid `MONGO_URI`.
+
+```bash
+# Build images and start all 4 containers (3 backends + Nginx)
+docker compose up -d --build
+
+# Verify all containers are up
+docker compose ps
+
+# Prove requests distribute across all 3 instances (12 requests → 4 each)
+./scripts/part-a-distribution.sh
+
+# ApacheBench: 1-instance vs 3-instance load test (saves results to ./results/)
+./scripts/part-b-loadtest.sh
+
+# Failover test — naive config (expect failures when backend2 is killed)
+./scripts/part-c-failover.sh before
+
+# Failover test — fault-tolerant config (expect 0 failures)
+./scripts/part-c-failover.sh after
+
+# API via load balancer: http://localhost:8080
+# Individual backends (bypass Nginx):
+#   http://localhost:5001  → backend1
+#   http://localhost:5002  → backend2
+#   http://localhost:5003  → backend3
+```
