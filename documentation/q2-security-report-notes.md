@@ -30,7 +30,7 @@
 | `mfaEnabled` | Whether TOTP MFA is active |
 | `mfaSecret` | TOTP secret (select:false — never sent to client) |
 
-### Before → After Evidence
+### Before -> After Evidence
 
 **Before (plaintext):**
 ```
@@ -48,7 +48,7 @@
 
 1. **Adaptive cost factor** — cost=12 means ~250 ms per hash; brute-force at GPU speed is infeasible.
 2. **Built-in salt** — each hash includes a unique 22-character random salt, defeating rainbow-table attacks.
-3. **Industry standard** — OWASP Password Storage Cheat Sheet recommends bcrypt (work factor ≥ 10).
+3. **Industry standard** — OWASP Password Storage Cheat Sheet recommends bcrypt (work factor >= 10).
 4. **GDPR Art. 32** — requires "appropriate technical measures" for personal data security; bcrypt satisfies this for credential storage.
 
 ---
@@ -61,16 +61,21 @@
 Client                    Server
   |                          |
   |-- POST /api/auth/login ->|  validates password (bcrypt.compare)
-  |<- { token: setupJWT } ---|  purpose="mfa_setup" (short-lived, 10 min)
+  |<- { setupToken } --------|  purpose="mfa-setup" (short-lived, 10 min)
   |                          |
-  |-- POST /api/auth/mfa/setup -> |  generates TOTP secret, returns QR
-  |<- { qrDataUrl, otpauthUrl } --|
-  |  [user scans QR with phone]   |
-  |-- POST /api/auth/mfa/verify-setup { code } ->|
+  |-- POST /api/auth/mfa/setup (Bearer setupToken) ->|  generates TOTP secret, returns QR
+  |<- { qrDataUrl, otpauthUrl } ------------------|
+  |  [user scans QR with phone]                   |
+  |-- POST /api/auth/mfa/verify-setup { code } -->|
   |<- { token: accessJWT }    |  purpose="access" (1 h)
   |                          |
+  |  (subsequent logins, MFA already enrolled)    |
+  |-- POST /api/auth/login ->|  returns { mfaRequired:true, mfaToken }
+  |-- POST /api/auth/mfa/verify (Bearer mfaToken) { code } ->|
+  |<- { token: accessJWT }    |
+  |                          |
   |-- PUT /api/donors/:id  Authorization: Bearer <accessJWT> ->|
-  |   middleware: requireAuth("access") → requireRole("admin","bloodbank_officer")
+  |   middleware: requireAuth("access") -> requireRole("admin","bloodbank_officer")
   |<- 200 OK or 403 Forbidden
 ```
 
@@ -78,27 +83,32 @@ Client                    Server
 
 | Endpoint | No token | volunteer | bloodbank_officer | admin |
 |----------|----------|-----------|-------------------|-------|
-| GET /api/donors | ✅ 200 | ✅ 200 | ✅ 200 | ✅ 200 |
-| POST /api/donors | ✅ 200 | ✅ 200 | ✅ 200 | ✅ 200 |
-| PUT /api/donors/:id | ❌ 401 | ❌ 403 | ✅ 200 | ✅ 200 |
-| DELETE /api/donors/:id | ❌ 401 | ❌ 403 | ❌ 403 | ✅ 200 |
-| PUT /api/requests/:id | ❌ 401 | ❌ 403 | ✅ 200 | ✅ 200 |
-| DELETE /api/requests/:id | ❌ 401 | ❌ 403 | ❌ 403 | ✅ 200 |
+| GET /api/donors | 200 | 200 | 200 | 200 |
+| POST /api/donors | 200 | 200 | 200 | 200 |
+| PUT /api/donors/:id | 401 | 403 | 200 | 200 |
+| DELETE /api/donors/:id | 401 | 403 | 403 | 200 |
+| PUT /api/requests/:id | 401 | 403 | 200 | 200 |
+| DELETE /api/requests/:id | 401 | 403 | 403 | 200 |
 
-### Test Evidence (`results/q2/b-auth-tests.txt`)
+### Test Evidence (`results/q2/b-auth-tests.txt`) — All 15 Tests PASS
 
-| Test | Token | Expected | Result |
-|------|-------|----------|--------|
-| No-token PUT donor | — | 401 | ✅ PASS |
-| No-token DELETE donor | — | 401 | ✅ PASS |
-| No-token PUT request | — | 401 | ✅ PASS |
-| No-token DELETE request | — | 401 | ✅ PASS |
-| Volunteer PUT donor | volunteer | 403 | ✅ PASS |
-| Volunteer DELETE donor | volunteer | 403 | ✅ PASS |
-| Officer PUT donor | officer | 200 | ✅ PASS |
-| Officer DELETE donor | officer | 403 | ✅ PASS |
-| Admin GET /me | admin | 200 | ✅ PASS |
-| Admin DELETE test donor | admin | 200 | ✅ PASS |
+| # | Test | Token used | Expected | Result |
+|---|------|-----------|----------|--------|
+| 1 | No token -> PUT donor | none | 401 | PASS |
+| 2 | No token -> DELETE donor | none | 401 | PASS |
+| 3 | No token -> PUT request | none | 401 | PASS |
+| 4 | No token -> DELETE request | none | 401 | PASS |
+| 5 | Volunteer -> PUT donor | volunteer | 403 | PASS |
+| 6 | Volunteer -> DELETE donor | volunteer | 403 | PASS |
+| 7 | Officer -> PUT donor | officer | 200 | PASS |
+| 8 | Officer -> DELETE donor | officer | 403 | PASS |
+| 9 | Admin -> GET /api/auth/me | admin | 200 | PASS |
+| 10 | Admin DELETE TEST DELETE DONOR | admin | 200 | PASS |
+| 11 | Login correct pw -> mfaRequired:true, no "token" field | — | 200+mfaRequired | PASS |
+| 12 | mfaToken as Bearer on PUT donor | mfaToken | 401 | PASS |
+| 13 | mfa/verify with code 000000 | mfaToken | 401 | PASS |
+| 14 | PUT donor with Bearer faketoken123 | fake | 401 | PASS |
+| 15 | Login wrong password | — | 401 | PASS |
 
 ---
 
@@ -106,85 +116,121 @@ Client                    Server
 
 ### Image Comparison
 
-| Attribute | Before (`node:20-slim`) | After (`node:20-alpine`) | Change / Improvement |
-|-----------|-------------------------|--------------------------|----------------------|
+| Attribute | Before (`node:20-slim`) | After (`node:20-alpine`) | Change |
+|-----------|-------------------------|--------------------------|--------|
 | Base image | Debian 12.13 (glibc) | Alpine Linux 3.23.4 (musl) | Minimal attack surface |
-| Image size | 331 MB | 219 MB | **-112 MB (34% reduction)** |
-| Running user | `uid=0(root)` | `uid=1000(node)` | **Non-root containment** |
-| Installed OS pkgs | 88 packages | 18 packages | **-70 packages (80% fewer pkgs)** |
-| npm installation | `npm install` (all deps + cache) | `npm ci --omit=dev && npm cache clean --force` | Production dependencies only |
-| Secrets hygiene | `.env` present in context | `RUN rm -f .env` | Prevents secret leakage |
+| Image size | 331 MB | 219 MB | -112 MB (-34%) |
+| Running user | uid=0 (root) | uid=1000 (node) | Non-root containment |
+| npm installation | npm install (all deps) | npm ci --omit=dev + cache clean | Production only |
+| Secrets hygiene | .env present in context | RUN rm -f .env | Prevents secret leakage |
 
-### Trivy Scan Results
+### Trivy Scan Summary
 
-*(See `results/q2/c-trivy-before.txt` and `results/q2/c-trivy-after.txt` for raw output)*
+*(Full output: `results/q2/c-trivy-before.txt` and `results/q2/c-trivy-after.txt`)*
+*(Detailed table: `results/q2/c-summary.txt`)*
 
-| Severity Category | Before (`node:20-slim`) | After (`node:20-alpine`) | Vulnerability Reduction |
-|-------------------|-------------------------|--------------------------|-------------------------|
-| OS Vulnerabilities | 74 | 4 | **-94.6% reduction** |
-| CRITICAL Severities | 7 | 4 | **-42.9% reduction** |
-| HIGH Severities | 8 | 6 | **-25.0% reduction** |
-| Total Flagged | 100+ | Low single-digit OS vulns | **Major security gain** |
+| Image | Base | User | Size | CRITICAL | HIGH | OS pkgs | Node pkgs |
+|-------|------|------|------|----------|------|---------|-----------|
+| blood-donor-backend:before | node:20-slim | uid=0 root | 331 MB | 8 | 92 | 6C+68H=74 | 2C+24H=26 |
+| blood-donor-backend:hardened | node:20-alpine | uid=1000 node | 219 MB | 1 | 25 | 0C+4H=4 | 1C+21H=22 |
+
+Remaining 1 CRITICAL + 25 HIGH after hardening are all in npm's own bundled modules
+(tar, sigstore, brace-expansion inside /usr/local/lib/node_modules/npm/) or unpatched
+Alpine OpenSSL (CVE-2026-14456, awaiting 3.5.8-r0 in Alpine 3.23 stable).
+Application code has 0 vulnerabilities after npm audit fix.
 
 ### Hardening Controls Applied
 
-1. **Non-root user** — `USER node` (uid=1000): if exploited, attacker cannot modify system binaries.
-2. **Alpine base** — minimal OS packages = smaller attack surface.
-3. **`npm ci --omit=dev`** — removes test frameworks, build tools from runtime image.
+1. **Non-root user** — `USER node` (uid=1000): exploited container cannot modify system binaries.
+2. **Alpine base** — minimal OS packages, 80% fewer installed packages.
+3. **`npm ci --omit=dev`** — removes test frameworks and build tools from runtime image.
 4. **`npm cache clean --force`** — no cached npm files in the image layer.
 5. **`RUN rm -f .env`** — prevents accidental secret leakage if `.dockerignore` is misconfigured.
+6. **`npm audit fix`** — fixed proxy-addr (CRITICAL CVE-2026-90711) and body-parser (HIGH) before rebuild.
 
 ---
 
 ## Part (d) — Threat Model, Controls & GDPR
 
-### System Architecture (from Q1)
+### Why This System Processes GDPR-Regulated Data
 
-```
-Netlify (frontend) → Nginx LB :8080 → backend1/2/3 (Node.js) → MongoDB Atlas
-                                          ↑
-                                   Cloud Burst node (Azure/AWS on-demand)
-```
+The system stores donor records containing:
+- **Name, email, phone, city/state** — personal data identifying a natural person (GDPR Art. 4(1))
+- **Blood group and donation eligibility** — health data, a *special category* under **GDPR Art. 9**
 
-### GDPR-Relevant Data in System
+Any unauthorised access, leakage or manipulation of these records constitutes a personal data breach
+requiring notification to supervisory authorities (Art. 33) and potentially to donors themselves (Art. 34).
 
-| Data | GDPR Category | Article |
-|------|---------------|---------|
-| Name, email, phone | Personal data | Art. 4(1) |
-| Blood group | Special category (health) | Art. 9 |
-| Donation history | Health-related | Art. 9 |
-| Location (city/state) | Personal data | Art. 4(1) |
+---
 
-### Threat Agents & Controls
+### Threat Agent 1 — External Cybercriminal / Credential-Stuffing Attacker
 
-| # | Threat Agent | Attack Vector | Impact | Control Implemented |
-|---|-------------|---------------|--------|---------------------|
-| 1 | **External cybercriminal** | SQL/NoSQL injection via donor name/email fields | Data exfiltration of all donor PII | Mongoose schema validation + type enforcement prevents $where injection |
-| 2 | **Credential theft / phishing** | Stolen staff password → unauthorised PUT/DELETE | Data manipulation, GDPR breach | bcrypt hashing + TOTP MFA (two-factor) makes stolen password alone useless |
-| 3 | **Insider threat (malicious staff)** | Volunteer-role user attempts to delete records | Data destruction | RBAC: volunteer cannot PUT/DELETE; only admin can DELETE |
-| 4 | **Brute-force login** | Automated password guessing on /api/auth/login | Account takeover | Rate limiter (10 req / 15 min per IP) via express-rate-limit |
-| 5 | **Privilege escalation** | JWT tampering to forge admin role | Full admin access | JWT signed with 256-bit HS256 secret; role embedded in payload; verified on every request |
-| 6 | **Container escape / root exploit** | Exploit app vulnerability to gain root in container | Host system compromise | Non-root USER node in hardened Docker image |
-| 7 | **Known CVE in base image** | Exploit unpatched Debian library in node:20 full | Remote code execution | node:20-alpine base reduces exposed packages; Trivy CI scan gates deployment |
-| 8 | **Token replay / interception** | Capture JWT over HTTP | Persistent unauthorised access | JWT expires in 1 h; HTTPS enforced in production (Render + Netlify) |
+**Profile:** Automated attacker using breach-database credential lists to attempt login to staff accounts
+via POST /api/auth/login; or scanning for unpatched container CVEs to gain remote code execution.
 
-### GDPR Compliance Mapping
+**Attack vector:**
+- Tries `admin1 / password123` (credential stuffing from known breaches)
+- If password matches: gains access to PUT/DELETE donor records without MFA
+- Or exploits a CRITICAL OS/Node CVE in the unpatched `node:20-slim` image to exfiltrate the database
 
-| GDPR Article | Requirement | Implementation |
-|-------------|-------------|----------------|
-| Art. 5(1)(f) — Integrity & Confidentiality | Personal data must be secured against unauthorised access | bcrypt passwords, JWT auth, RBAC, HTTPS in production |
-| Art. 9 — Special Category Data | Blood group data requires explicit consent and extra safeguards | Role-based access; only authenticated staff can modify records; donors submit voluntarily |
-| Art. 25 — Data Protection by Design | Privacy built into system design | `mfaSecret` uses `select:false` (never returned to client); `.env` excluded from image; non-root container |
-| Art. 32 — Security of Processing | Appropriate technical measures | MFA, bcrypt (cost 12), rate limiting, hardened Docker image, Trivy scanning |
+**Impact:** Mass exfiltration of donor PII and blood group data; manipulation or deletion of donor records.
 
-### Why Cloud Bursting (not Edge Computing)?
+**Controls implemented:**
+1. **bcrypt (cost 12) password hashing** — even if the database is stolen, hashes cannot be reversed in feasible time; credential stuffing fails because plaintext from other breaches won't match the hash.
+2. **TOTP MFA (Google/Microsoft Authenticator)** — a valid password alone is insufficient; attacker also needs the physical device with the TOTP seed. Staff login always requires a second factor.
+3. **Rate limiter** — `express-rate-limit` (10 req / 15 min per IP) blocks automated credential-stuffing bursts.
+4. **Docker image hardening** — switching from `node:20-slim` (8 CRITICAL+HIGH OS CVEs) to `node:20-alpine` eliminates the Debian-specific CVEs (OS CRITICAL reduced from 6 to 0), shrinking the attack surface for remote code execution.
 
-Cloud bursting dynamically provisions extra compute capacity during demand spikes (e.g., disaster or mass-casualty event requiring many urgent blood requests). Edge computing pre-deploys cached data at edge nodes — inappropriate here because:
+**GDPR requirement — Art. 32(1):**
+> "The controller and processor shall implement appropriate technical ... measures to ensure a level of
+> security appropriate to the risk, including ... (b) the ability to ensure the ongoing confidentiality,
+> integrity, availability and resilience of processing systems."
 
-1. **Data freshness** — donor availability changes minute-by-minute; edge caches risk showing stale "available" status.
-2. **Unpredictability** — emergencies are sudden; cloud bursting scales on-demand without pre-deployed infrastructure everywhere.
-3. **Consistency** — all locations must see the same real-time donor database (MongoDB Atlas); edge nodes would diverge.
-4. **Cost** — cloud bursting is pay-per-use (scale to zero when no emergency); always-on edge nodes would be wasteful.
+**Why Art. 32(1) applies:** Blood group data is a special-category health record (Art. 9). Processing it
+requires *heightened* technical security. bcrypt + MFA directly fulfils the "appropriate technical measures"
+obligation; the Trivy-driven hardening reduces the risk of a system-level breach that would expose all donor records.
+
+---
+
+### Threat Agent 2 — Malicious or Careless Insider (Volunteer / Staff)
+
+**Profile:** A staff member with a low-privilege `volunteer` account (or a `bloodbank_officer` who overreaches)
+who attempts to delete or corrupt donor records — either maliciously (covering tracks after a fraudulent
+blood request) or carelessly (mistaken bulk delete).
+
+**Attack vector:**
+- Volunteer authenticates successfully (password + MFA) -> receives valid `access` JWT with `role: "volunteer"`
+- Calls `DELETE /api/donors/:id` or `PUT /api/donors/:id` hoping their token is accepted
+- Or an officer calls `DELETE /api/donors/:id` (above their permitted role)
+
+**Impact:** Deletion or corruption of donor records; loss of health data that could be needed in a medical emergency.
+
+**Controls implemented:**
+1. **Role-Based Access Control (RBAC)** — `requireRole` middleware rejects `volunteer` with HTTP 403 on any PUT/DELETE route; `bloodbank_officer` is blocked from DELETE. Only `admin` can delete records.
+2. **JWT `role` claim** — role is embedded and cryptographically signed in the JWT; a volunteer cannot self-elevate to `admin` by modifying the token without invalidating the HS256 signature.
+3. **`mfaSecret` with `select:false`** — the TOTP secret is never returned in API responses, preventing a staff member from extracting another user's secret via the API.
+
+**GDPR requirement — Art. 25 (Data Protection by Design and by Default):**
+> "The controller shall ... implement appropriate technical and organisational measures ... designed to
+> implement data-protection principles ... in an effective manner and to integrate the necessary safeguards
+> into the processing."
+
+**Why Art. 25 applies:** The principle of *data minimisation* and *access limitation* (Art. 5(1)(c) and (f))
+requires that each staff role can access only the data and operations necessary for their function.
+A volunteer coordinating donors has no legitimate need to delete or update records — RBAC enforces this
+at the architecture level, making privacy the default rather than an afterthought. Blood group and
+eligibility status are Art. 9 health data; restricting write access to senior roles limits insider risk
+to the minimum technically achievable.
+
+---
+
+### Other Controls (Summary)
+
+In addition to the two primary controls above, the system also implements:
+- **Helmet.js** — sets secure HTTP headers (X-Content-Type-Options, X-Frame-Options, etc.)
+- **JWT expiry (1 h)** — limits the window for a stolen token to be misused
+- **`.env` excluded from Docker image** — `RUN rm -f .env` + `.dockerignore` prevents secret leakage into image layers
+- **MongoDB Atlas** — managed database with TLS in transit, IP allow-listing, and Atlas audit logs
 
 ---
 
