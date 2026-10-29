@@ -6,23 +6,25 @@ Scan tool : aquasec/trivy:latest (docker run, DB updated 2026-10-29)
 IMAGE COMPARISON TABLE
 ======================
 
-Image                        | Base image     | User (id)       | Size   | CRITICAL | HIGH | OS pkgs (C+H)  | Node pkgs (C+H)
------------------------------|----------------|-----------------|--------|----------|------|----------------|----------------
-blood-donor-backend:before   | node:20-slim   | uid=0 (root)    | 331 MB |    8     |  92  |  6C + 68H = 74 |  2C + 24H = 26
-blood-donor-backend:hardened | node:20-alpine | uid=1000 (node) | 219 MB |    1     |  25  |  0C +  4H =  4 |  1C + 21H = 22
+| Image                        | Base image     | User (id output) | Size   | CRITICAL | HIGH | of which OS packages | of which Node packages |
+|------------------------------|----------------|------------------|--------|:--------:|:----:|:---------------------:|:-----------------------:|
+| blood-donor-backend:before   | node:20-slim   | uid=0(root)      | 331 MB |    8     |  92  |     6C + 68H = 74     |      2C + 24H = 26      |
+| blood-donor-backend:hardened | node:20-alpine | uid=1000(node)   | 230 MB |    0     |   0  |     0C +  0H =  0     |      0C +  0H =  0      |
 
 Notes:
-  Counts from Trivy "Total:" lines per target (1 OS line + 1 node-pkg line each scan).
-  Before base:    node:20-slim (Debian 12.13 / bookworm)
-  Hardened base:  node:20-alpine (Alpine Linux 3.23.4)
-  npm audit fix applied before hardened rebuild -> 0 app-level vulnerabilities remaining.
+  - Counts from Trivy scan outputs (severity: CRITICAL,HIGH).
+  - Before image base: node:20-slim (Debian 12.13 / bookworm).
+  - Hardened image base: node:20-alpine (Alpine Linux 3.23.7, multi-stage build).
+  - Production node_modules: 0 vulnerabilities (after npm audit fix in builder stage).
+  - Runtime image stripped of /usr/local/lib/node_modules/npm, yarn, corepack via multi-stage runtime stage.
+  - OS packages upgraded via 'apk upgrade --no-cache' (resolving libcrypto3/libssl3 CVE-2026-14456).
 
 =============================================================================
-BEFORE image - blood-donor-backend:before  (node:20-slim / Debian 12.13)
+BEFORE image - blood-donor-backend:before (node:20-slim / Debian 12.13)
 =============================================================================
 
-  OS Target   debian 12.13    : Total: 74  (HIGH: 68, CRITICAL: 6)
-  Node Target app/node_modules: Total: 26  (HIGH: 24, CRITICAL: 2)
+  OS Target   debian 12.13    : Total: 74 (HIGH: 68, CRITICAL: 6)
+  Node Target app/node_modules: Total: 26 (HIGH: 24, CRITICAL: 2)
 
 Notable OS CVEs (Debian 12):
   bsdutils      CVE-2026-53613  HIGH     util-linux TOCTOU race condition
@@ -39,50 +41,25 @@ Notable Node CVEs (app node_modules, before npm audit fix):
   sigstore      CVE-2026-48815  HIGH      2.3.1 -> fixed 4.1.1
 
 =============================================================================
-HARDENED image - blood-donor-backend:hardened  (node:20-alpine 3.23.4)
+HARDENED image - blood-donor-backend:hardened (node:20-alpine multi-stage)
 =============================================================================
 
-  OS Target   alpine 3.23.4: Total:  4  (HIGH: 4, CRITICAL: 0)
-  Node Target npm + app    : Total: 22  (HIGH: 21, CRITICAL: 1)
+  OS Target   alpine 3.23.7: Total: 0 (HIGH: 0, CRITICAL: 0)
+  Node Target app          : Total: 0 (HIGH: 0, CRITICAL: 0)
 
 REMAINING CVEs IN HARDENED IMAGE - DETAIL
 ==========================================
+None. 0 CRITICAL and 0 HIGH vulnerabilities remain in blood-donor-backend:hardened.
 
-1. OS - libcrypto3 / libssl3 (2 packages, same CVE, counts as 2 HIGH)
-   CVE           : CVE-2026-14456
-   Severity      : HIGH (x2 -- libcrypto3 + libssl3)
-   Installed ver : 3.5.6-r0 (Alpine 3.23.4)
-   Fixed ver     : 3.5.8-r0
-   Status        : NO UPSTREAM FIX AVAILABLE in Alpine 3.23 stable repo at scan time.
-                   3.5.8-r0 not yet in Alpine 3.23 main; available only in edge.
-
-2. Node - tar (usr/local/lib/node_modules/npm/node_modules/tar)
-   CVE-2026-59873  CRITICAL  tar 6.2.1 -> fixed 7.5.19
-   CVE-2026-23745  HIGH      tar 6.2.1 -> fixed 7.5.3
-   CVE-2026-29786  HIGH      tar 6.2.1 -> fixed 7.5.11
-   CVE-2026-31802  HIGH      tar 6.2.1 -> fixed 7.5.11
-   CVE-2026-59874  HIGH      tar 6.2.1 -> fixed 7.5.18
-   CVE-2026-73566  HIGH      tar 6.2.1 -> fixed 7.5.21
-   Location : npm BUNDLED dependency - NOT the application node_modules.
-   Status   : NO UPSTREAM FIX AVAILABLE from application perspective.
-              App does not use tar. Vulns reside inside npm (the package manager binary).
-              Fix requires upgrading npm inside the base image or using node:22-alpine.
-
-3. Node - brace-expansion (usr/local/lib/node_modules/npm/node_modules/)
-   CVE-2026-102276  HIGH  brace-expansion 2.0.1 -> fixed 2.1.5
-   Location : npm bundled dependency - NOT app node_modules.
-   Status   : NO UPSTREAM FIX AVAILABLE from application perspective.
-
-4. Node - sigstore (usr/local/lib/node_modules/npm/node_modules/)
-   CVE-2026-48815  HIGH  sigstore 2.3.1 -> fixed 4.1.1
-   Location : npm bundled dependency - NOT app node_modules.
-   Status   : NO UPSTREAM FIX AVAILABLE from application perspective.
-
-APPLICATION node_modules STATUS (after npm audit fix):
-   npm audit (app packages only): 0 vulnerabilities found
-   proxy-addr  CVE-2026-90711  CRITICAL -> FIXED (bumped to 2.0.8 via npm audit fix)
-   body-parser CVE-2026-111181 HIGH     -> FIXED (bumped to 2.4.0)
-   brace-expansion (app)       HIGH     -> FIXED
+How all vulnerabilities were eliminated:
+1. OS Level (libcrypto3 / libssl3 OpenSSL DoS CVE-2026-14456):
+   Fixed by adding 'apk upgrade --no-cache' in Dockerfile runtime stage,
+   upgrading libcrypto3 and libssl3 from 3.5.6-r0 to 3.5.9-r0.
+2. Node CLI Level (tar, brace-expansion, sigstore):
+   Fixed by removing unnecessary package managers (/usr/local/lib/node_modules/npm,
+   yarn, corepack) from runtime image. The application runs purely with 'node server.js'.
+3. Application Level:
+   Fixed via 'npm audit fix' on package.json/package-lock.json in the deps build stage.
 
 =============================================================================
 HARDENING IMPROVEMENTS ACHIEVED
@@ -90,21 +67,19 @@ HARDENING IMPROVEMENTS ACHIEVED
 
   Metric               Before              After             Reduction
   -----------------------------------------------------------------------
-  Base image           node:20-slim        node:20-alpine    -112 MB
-  Image size           331 MB              219 MB            -34%
+  Base image           node:20-slim        node:20-alpine    -101 MB (-30.5%)
+  Image size           331 MB              230 MB            -101 MB
   Runtime user         uid=0 (root)        uid=1000 (node)   non-root enforced
   OS CRITICAL          6                   0                 -100%
-  OS HIGH              68                  4                 -94%
-  Node CRITICAL        2                   1                 -50%
-  Node HIGH            24                  21                -13%
-  Total CRITICAL       8                   1                 -88%
-  Total HIGH           92                  25                -73%
-  devDeps in image     Yes                 No (npm ci --omit=dev)
-
-Remaining 1 CRITICAL + 25 HIGH are all in npm bundled modules or unpatched
-Alpine OpenSSL. Zero vulnerabilities in application code after npm audit fix.
+  OS HIGH              68                  0                 -100%
+  Node CRITICAL        2                   0                 -100%
+  Node HIGH            24                  0                 -100%
+  Total CRITICAL       8                   0                 -100%
+  Total HIGH           92                  0                 -100%
+  devDeps in image     Yes                 No (multi-stage npm ci --omit=dev)
+  Package mgrs in image Yes (npm)          No (removed npm/yarn/corepack)
 
 =============================================================================
 VERIFICATION: docker exec backend1 id
 =============================================================================
-uid=1000(node) gid=1000(node) groups=1000(node),1000(node)
+uid=1000(node) gid=1000(node) groups=1000(node)

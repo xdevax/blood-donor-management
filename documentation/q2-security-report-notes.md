@@ -118,10 +118,11 @@ Client                    Server
 
 | Attribute | Before (`node:20-slim`) | After (`node:20-alpine`) | Change |
 |-----------|-------------------------|--------------------------|--------|
-| Base image | Debian 12.13 (glibc) | Alpine Linux 3.23.4 (musl) | Minimal attack surface |
-| Image size | 331 MB | 219 MB | -112 MB (-34%) |
+| Base image | Debian 12.13 (glibc) | Alpine Linux 3.23.7 (musl) | Minimal attack surface |
+| Image size | 331 MB | 230 MB | -101 MB (-30.5%) |
 | Running user | uid=0 (root) | uid=1000 (node) | Non-root containment |
-| npm installation | npm install (all deps) | npm ci --omit=dev + cache clean | Production only |
+| npm installation | npm install (all deps) | Multi-stage `npm ci --omit=dev` | Production only |
+| Package manager | npm/yarn installed | Removed in runtime stage | Eliminates CLI CVEs |
 | Secrets hygiene | .env present in context | RUN rm -f .env | Prevents secret leakage |
 
 ### Trivy Scan Summary
@@ -130,23 +131,24 @@ Client                    Server
 *(Detailed table: `results/q2/c-summary.txt`)*
 
 | Image | Base | User | Size | CRITICAL | HIGH | OS pkgs | Node pkgs |
-|-------|------|------|------|----------|------|---------|-----------|
+|-------|------|------|------|:---:|:---:|:---:|:---:|
 | blood-donor-backend:before | node:20-slim | uid=0 root | 331 MB | 8 | 92 | 6C+68H=74 | 2C+24H=26 |
-| blood-donor-backend:hardened | node:20-alpine | uid=1000 node | 219 MB | 1 | 25 | 0C+4H=4 | 1C+21H=22 |
+| blood-donor-backend:hardened | node:20-alpine | uid=1000 node | 230 MB | **0** | **0** | **0** | **0** |
 
-Remaining 1 CRITICAL + 25 HIGH after hardening are all in npm's own bundled modules
-(tar, sigstore, brace-expansion inside /usr/local/lib/node_modules/npm/) or unpatched
-Alpine OpenSSL (CVE-2026-14456, awaiting 3.5.8-r0 in Alpine 3.23 stable).
-Application code has 0 vulnerabilities after npm audit fix.
+All vulnerabilities in the hardened image were reduced to 0:
+- OS OpenSSL CVE-2026-14456 was resolved by `apk upgrade --no-cache` (upgraded libcrypto3/libssl3 to 3.5.9-r0).
+- Node CLI vulnerabilities in npm/tar/sigstore/brace-expansion were eliminated by pruning `/usr/local/lib/node_modules/npm`, yarn, and corepack from the runtime container.
+- Application-level dependencies remain 100% clean (0 vulnerabilities after `npm audit fix`).
 
 ### Hardening Controls Applied
 
 1. **Non-root user** — `USER node` (uid=1000): exploited container cannot modify system binaries.
 2. **Alpine base** — minimal OS packages, 80% fewer installed packages.
-3. **`npm ci --omit=dev`** — removes test frameworks and build tools from runtime image.
-4. **`npm cache clean --force`** — no cached npm files in the image layer.
-5. **`RUN rm -f .env`** — prevents accidental secret leakage if `.dockerignore` is misconfigured.
-6. **`npm audit fix`** — fixed proxy-addr (CRITICAL CVE-2026-90711) and body-parser (HIGH) before rebuild.
+3. **Multi-stage build & `npm ci --omit=dev`** — dependencies installed in builder stage; devDependencies excluded.
+4. **Stripped runtime package managers** — removed npm, yarn, corepack from the runtime stage since Node runs `server.js` directly.
+5. **OS patch level** — `apk upgrade --no-cache` pulls the latest security patches for base packages.
+6. **`RUN rm -f .env`** — prevents accidental secret leakage if `.dockerignore` is misconfigured.
+7. **`npm audit fix`** — fixed proxy-addr (CRITICAL CVE-2026-90711) and body-parser (HIGH) in the dependency tree.
 
 ---
 

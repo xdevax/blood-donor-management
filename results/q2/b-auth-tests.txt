@@ -1,7 +1,7 @@
 [1m=== Q2 Part (b) -- JWT + RBAC Auth Tests ===[0m
 Base URL : http://localhost:8080
 Donor ID : 6ae38e1149bf1495177d11e0
-Date     : Thu Oct 29 18:26:01 UTC 2026
+Date     : Thu Oct 29 18:37:19 UTC 2026
 
 --- Test 1: No token -> PUT donor -> 401 ---
 [0;32mPASS[0m  [No-token PUT donor] expected=401 got=401
@@ -24,7 +24,7 @@ Date     : Thu Oct 29 18:26:01 UTC 2026
 [0;32mPASS[0m  [Admin GET /me (200)] expected=200 got=200
 
 --- Creating TEST DELETE DONOR (phone derived from epoch, exactly 10 digits) ---
-Create response: {"success":true,"message":"Donor registered successfully","data":{"name":"TEST DELETE DONOR","age":25,"gender":"Male","bloodGroup":"O+","phone":"1793298361","email":"testdelete-1793298361@demo.com","city":"TestCity","state":"TestState","isAvailable":true,"_id":"6ae38fb942fb9f92e917398c","createdAt":"2026-10-29T18:26:01.833Z","updatedAt":"2026-10-29T18:26:01.833Z","__v":0}}
+Create response: {"success":true,"message":"Donor registered successfully","data":{"name":"TEST DELETE DONOR","age":25,"gender":"Male","bloodGroup":"O+","phone":"1793299040","email":"testdelete-1793299040@demo.com","city":"TestCity","state":"TestState","isAvailable":true,"_id":"6ae3926032299ab35cea0180","createdAt":"2026-10-29T18:37:20.119Z","updatedAt":"2026-10-29T18:37:20.119Z","__v":0}}
 
 --- Test 10: Admin DELETE TEST DELETE DONOR -> 200 ---
 [0;32mPASS[0m  [Admin DELETE test donor (200)] expected=200 got=200
@@ -35,7 +35,7 @@ Create response: {"success":true,"message":"Donor registered successfully","data
 
 --- Test 11: POST /api/auth/login admin1 correct pw -> 200 + mfaRequired:true + NO 'token' field ---
   HTTP status : 200
-  Body        : {"success":true,"mfaRequired":true,"mfaToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YWUzNzdmNTljNDgwZmYyZWZjN2Q1ZTUiLCJ1c2VybmFtZSI6ImFkbWluMSIsInJvbGUiOiJhZG1pbiIsInB1cnBvc2UiOiJtZmEiLCJpYXQiOjE3OTMyOTgzNjIsImV4cCI6MTc5MzI5ODY2Mn0.rFdHLwlrIazA_8GejItKoVWP8rftuRdQkR9vKGRo1qM","message":"Password OK. Enter the 6-digit code from your authenticator app."}
+  Body        : {"success":true,"mfaRequired":true,"mfaToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YWUzNzdmNTljNDgwZmYyZWZjN2Q1ZTUiLCJ1c2VybmFtZSI6ImFkbWluMSIsInJvbGUiOiJhZG1pbiIsInB1cnBvc2UiOiJtZmEiLCJpYXQiOjE3OTMyOTkwNDAsImV4cCI6MTc5MzI5OTM0MH0.fZBt7iOvhOQ1j70-Lf3MX5qskcm_yls77JQx4mNi4sk","message":"Password OK. Enter the 6-digit code from your authenticator app."}
 [0;32mPASS[0m  [Login->200+mfaRequired:true+no_token_field] expected=200+mfaRequired:true+no_token_field got=OK
 
 --- Test 12: Use mfaToken as Bearer on PUT donor -> 401 (wrong token purpose) ---
