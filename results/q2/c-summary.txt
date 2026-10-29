@@ -15,6 +15,7 @@ Notes:
   - Counts from Trivy scan outputs (severity: CRITICAL,HIGH).
   - Before image base: node:20-slim (Debian 12.13 / bookworm).
   - Hardened image base: node:20-alpine (Alpine Linux 3.23.7, multi-stage build).
+  - Size increased slightly (219 → 230 MB) because apk upgrade adds patched packages in a new layer, and files deleted from the base image layer still occupy space. Security, not size, was the goal of this step; the image is still 30% smaller than the original (331 MB).
   - Production node_modules: 0 vulnerabilities (after npm audit fix in builder stage).
   - Runtime image stripped of /usr/local/lib/node_modules/npm, yarn, corepack via multi-stage runtime stage.
   - OS packages upgraded via 'apk upgrade --no-cache' (resolving libcrypto3/libssl3 CVE-2026-14456).

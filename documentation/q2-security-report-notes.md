@@ -135,6 +135,8 @@ Client                    Server
 | blood-donor-backend:before | node:20-slim | uid=0 root | 331 MB | 8 | 92 | 6C+68H=74 | 2C+24H=26 |
 | blood-donor-backend:hardened | node:20-alpine | uid=1000 node | 230 MB | **0** | **0** | **0** | **0** |
 
+> **Note on Image Size:** Size increased slightly (219 → 230 MB) because `apk upgrade` adds patched packages in a new layer, and files deleted from the base image layer still occupy space. Security, not size, was the goal of this step; the image is still 30% smaller than the original (331 MB).
+
 All vulnerabilities in the hardened image were reduced to 0:
 - OS OpenSSL CVE-2026-14456 was resolved by `apk upgrade --no-cache` (upgraded libcrypto3/libssl3 to 3.5.9-r0).
 - Node CLI vulnerabilities in npm/tar/sigstore/brace-expansion were eliminated by pruning `/usr/local/lib/node_modules/npm`, yarn, and corepack from the runtime container.
