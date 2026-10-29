@@ -119,11 +119,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ============================================================
      EVENT DELEGATION
-     ONE listener on the tbody instead of two per row.
-     Rows are rebuilt on every load, so per-row listeners would
-     have to be re-attached every time (and old ones leak memory).
-     Clicks bubble UP from the button to the tbody, and we ask
-     event.target which button was actually clicked.
      ============================================================ */
   tableBody.addEventListener('click', function (event) {
     const button = event.target.closest('button[data-action]');
@@ -160,9 +155,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('editCity').value       = d.city || '';
     document.getElementById('editState').value      = d.state || '';
 
-    // DATE CONVERSION (API -> form):
-    // API sends '2024-03-15T00:00:00.000Z' but <input type="date">
-    // accepts ONLY 'YYYY-MM-DD'. Anything else shows blank silently.
     document.getElementById('editLastDonationDate').value =
       toInputDate(d.lastDonationDate);
 
@@ -200,9 +192,6 @@ document.addEventListener('DOMContentLoaded', function () {
       if (email) body.email = email;
       if (state) body.state = state;
 
-      // DATE CONVERSION (form -> API):
-      // The input already gives 'YYYY-MM-DD', which Mongoose parses
-      // happily, so it is sent through as-is.
       if (lastDonationDate) body.lastDonationDate = lastDonationDate;
 
       if (!age || isNaN(body.age)) {
@@ -226,6 +215,11 @@ document.addEventListener('DOMContentLoaded', function () {
         showMessage(result.message || 'Donor updated successfully!', 'success');
         editSection.classList.add('hidden');
         loadDonors();                     // re-render so the row shows new data
+      } else if (result.status === 401) {
+        showMessage('Please log in with staff credentials to update donor records.', 'error');
+      } else if (result.status === 403) {
+        const u = getAuthUser();
+        showMessage('Forbidden: your role (' + (u ? u.role : 'none') + ') cannot update donor records.', 'error');
       } else {
         showMessage(result.message || 'Could not update donor.', 'error');
       }
@@ -253,6 +247,11 @@ document.addEventListener('DOMContentLoaded', function () {
       showMessage(result.message || 'Donor deleted.', 'success');
       editSection.classList.add('hidden');   // in case that donor was open
       loadDonors();                          // MUST re-render or the row lingers
+    } else if (result.status === 401) {
+      showMessage('Please log in with staff credentials to delete donor records.', 'error');
+    } else if (result.status === 403) {
+      const u = getAuthUser();
+      showMessage('Forbidden: your role (' + (u ? u.role : 'none') + ') cannot delete donor records (Admin only).', 'error');
     } else {
       showMessage(result.message || 'Could not delete donor.', 'error');
     }

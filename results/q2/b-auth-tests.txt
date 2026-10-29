@@ -1,0 +1,36 @@
+[1m=== Q2 Part (b) — JWT + RBAC Auth Tests ===[0m
+Base URL : http://localhost:8080
+Donor ID : 6ae056ddcc14308b7f7d37d0
+Date     : Thu Oct 29 17:19:33 UTC 2026
+
+--- Test 1: No token → PUT donor → 401 ---
+[0;32mPASS[0m  [No-token PUT donor] expected=401 got=401
+--- Test 2: No token → DELETE donor → 401 ---
+[0;32mPASS[0m  [No-token DELETE donor] expected=401 got=401
+--- Test 3: No token → PUT request → 401 ---
+[0;32mPASS[0m  [No-token PUT request] expected=401 got=401
+--- Test 4: No token → DELETE request → 401 ---
+[0;32mPASS[0m  [No-token DELETE request] expected=401 got=401
+--- Test 5: Volunteer token → PUT donor → 403 (wrong role) ---
+[0;32mPASS[0m  [Volunteer PUT donor (403)] expected=403 got=403
+--- Test 6: Volunteer token → DELETE donor → 403 (wrong role) ---
+[0;32mPASS[0m  [Volunteer DELETE donor (403)] expected=403 got=403
+--- Test 7: Officer token → PUT donor → 200 (allowed) ---
+[0;32mPASS[0m  [Officer PUT donor (200)] expected=200 got=200
+--- Test 8: Officer token → DELETE donor → 403 (not admin) ---
+[0;32mPASS[0m  [Officer DELETE donor (403)] expected=403 got=403
+
+--- Test 9: Admin token → GET /api/auth/me → 200 ---
+[0;32mPASS[0m  [Admin GET /me (200)] expected=200 got=200
+
+=======================================
+[1mResults: [0;32m9 PASS[0m  [0;31m0 FAIL[0m
+=======================================
+
+--- Creating test donor for DELETE demo ---
+Create response: {"success":true,"message":"Donor registered successfully","data":{"name":"Test Delete Demo","age":25,"gender":"Male","bloodGroup":"O+","phone":"9793294373","email":"test-9793294373@demo.com","city":"TestCity","state":"TestState","isAvailable":true,"_id":"6ae380250b23e450a71d8972","createdAt":"2026-10-29T17:19:33.310Z","updatedAt":"2026-10-29T17:19:33.310Z","__v":0}}
+
+--- Test 10: Admin DELETE test donor → 200 ---
+[0;32mPASS[0m  [Admin DELETE donor (200)] expected=200 got=200
+
+Final Results: 10 PASS, 0 FAIL

@@ -1,0 +1,10 @@
+# Dockerfile.before — unhardened image used for Trivy "before" scan (Q2 part c)
+# Uses the Debian-based Node.js image (Debian packages, glibc, runs as root)
+FROM node:20-slim
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+ENV NODE_ENV=production
+EXPOSE 5000
+CMD ["node", "server.js"]

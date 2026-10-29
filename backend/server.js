@@ -4,6 +4,7 @@ require('dotenv').config();
 // 2. Third-party packages
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const mongoose = require('mongoose');
 const os = require('os');
 
@@ -13,6 +14,7 @@ const donorRoutes = require('./routes/donorRoutes');
 const requestRoutes = require('./routes/requestRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const statsRoutes = require('./routes/statsRoutes');
+const authRoutes = require('./routes/authRoutes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 // Identity of this instance (backend1/2/3 in Docker, hostname otherwise)
@@ -24,8 +26,12 @@ connectDB();
 // 5. Initialise Express
 const app = express();
 
+// Set trust proxy (behind Nginx load balancer, needed for accurate client IPs and express-rate-limit)
+app.set('trust proxy', 1);
+
 // 6. Global middleware
 app.use(cors());
+app.use(helmet());
 app.use(express.json());
 
 // Tag every response with the instance that served it (header only, body unchanged)
@@ -68,6 +74,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // 9. API routes
+app.use('/api/auth', authRoutes);
 app.use('/api/donors', donorRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/admin', adminRoutes);

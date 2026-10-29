@@ -141,7 +141,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('updateRequestId').value = r._id;
 
-    // Read-only label so the user can see WHO they are updating
     const patientLabel = document.getElementById('updateRequestPatient');
     if (patientLabel.tagName === 'INPUT') {
       patientLabel.value = r.patientName || '';
@@ -154,7 +153,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('updateUnitsRequired').value = r.unitsRequired || '';
     document.getElementById('updateNotes').value         = r.notes || '';
 
-    // DATE: API sends full ISO, <input type="date"> needs YYYY-MM-DD
     document.getElementById('updateNeededBy').value = toInputDate(r.neededBy);
 
     updateSection.classList.remove('hidden');
@@ -164,7 +162,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ============================================================
      SAVE THE UPDATE — PUT /api/requests/:id
-     This is the Open -> Fulfilled demo.
      ============================================================ */
   if (updateForm) {
     updateForm.addEventListener('submit', async function (event) {
@@ -182,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function () {
       };
 
       if (neededBy) body.neededBy = neededBy;
-      body.notes = notes;      // sent even when empty, so notes can be cleared
+      body.notes = notes;
 
       if (!unitsRequired || isNaN(body.unitsRequired) || body.unitsRequired < 1) {
         showMessage('Please enter a valid number of units (1 or more).', 'error');
@@ -208,6 +205,11 @@ document.addEventListener('DOMContentLoaded', function () {
         );
         updateSection.classList.add('hidden');
         loadRequests();          // re-render so the status badge changes colour
+      } else if (result.status === 401) {
+        showMessage('Please log in with staff credentials to update blood requests.', 'error');
+      } else if (result.status === 403) {
+        const u = getAuthUser();
+        showMessage('Forbidden: your role (' + (u ? u.role : 'none') + ') cannot update blood requests.', 'error');
       } else {
         showMessage(result.message || 'Could not update the request.', 'error');
       }
@@ -235,6 +237,11 @@ document.addEventListener('DOMContentLoaded', function () {
       showMessage(result.message || 'Request deleted.', 'success');
       updateSection.classList.add('hidden');
       loadRequests();            // MUST re-render or the row lingers
+    } else if (result.status === 401) {
+      showMessage('Please log in with staff credentials to delete blood requests.', 'error');
+    } else if (result.status === 403) {
+      const u = getAuthUser();
+      showMessage('Forbidden: your role (' + (u ? u.role : 'none') + ') cannot delete blood requests (Admin only).', 'error');
     } else {
       showMessage(result.message || 'Could not delete the request.', 'error');
     }

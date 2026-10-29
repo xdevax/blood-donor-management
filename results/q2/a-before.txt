@@ -1,0 +1,24 @@
+◇ injected env (7) from .env // tip: ⌘ override existing { override: true }
+✅ MongoDB Connected: ac-cjflnkz-shard-00-00.mxpcarw.mongodb.net
+   Database Name: blood_donor_db
+BEFORE: inserted staff with PLAIN TEXT passwords:
+[
+  {
+    _id: new ObjectId('6ae377f59c480ff2efc7d5e5'),
+    username: 'admin1',
+    password: 'Admin@123',
+    role: 'admin'
+  },
+  {
+    _id: new ObjectId('6ae377f59c480ff2efc7d5e6'),
+    username: 'officer1',
+    password: 'Officer@123',
+    role: 'bloodbank_officer'
+  },
+  {
+    _id: new ObjectId('6ae377f59c480ff2efc7d5e7'),
+    username: 'volunteer1',
+    password: 'Volunteer@123',
+    role: 'volunteer'
+  }
+]

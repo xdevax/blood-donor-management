@@ -1,0 +1,26 @@
+◇ injected env (7) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+✅ MongoDB Connected: ac-cjflnkz-shard-00-00.mxpcarw.mongodb.net
+   Database Name: blood_donor_db
+hashed admin1: $2b$12$essqepO2yesL2cKbcr4o4O50wMt2hOpsciWeJ8pEVvESOXKaIy3aa
+hashed officer1: $2b$12$WKk.Aiqk6.TyplWqye1dzuDlry/uw3SRJtN8HJMC9qJZ8YB3LHCqS
+hashed volunteer1: $2b$12$pnyCXGBZQvdkKhgq2FzGE.cgLvdC21Uz242NLYIO1rtF6u.1quB2y
+AFTER: [
+  {
+    _id: new ObjectId('6ae377f59c480ff2efc7d5e5'),
+    username: 'admin1',
+    role: 'admin',
+    passwordHash: '$2b$12$essqepO2yesL2cKbcr4o4O50wMt2hOpsciWeJ8pEVvESOXKaIy3aa'
+  },
+  {
+    _id: new ObjectId('6ae377f59c480ff2efc7d5e6'),
+    username: 'officer1',
+    role: 'bloodbank_officer',
+    passwordHash: '$2b$12$WKk.Aiqk6.TyplWqye1dzuDlry/uw3SRJtN8HJMC9qJZ8YB3LHCqS'
+  },
+  {
+    _id: new ObjectId('6ae377f59c480ff2efc7d5e7'),
+    username: 'volunteer1',
+    role: 'volunteer',
+    passwordHash: '$2b$12$pnyCXGBZQvdkKhgq2FzGE.cgLvdC21Uz242NLYIO1rtF6u.1quB2y'
+  }
+]

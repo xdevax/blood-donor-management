@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Login | Blood Donor Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ================= NAVBAR ================= -->
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <a href="index.html" class="nav-brand">Blood Donor Management</a>
+        <button class="nav-toggle" id="navToggle" type="button" aria-label="Toggle navigation">&#9776;</button>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="register.html">Register Donor</a></li>
+          <li><a href="donors.html">Find Donors</a></li>
+          <li><a href="request.html">New Request</a></li>
+          <li><a href="requests.html">Requests</a></li>
+          <li><a href="admin.html">Admin</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+    <div class="container">
+
+      <h1 class="page-title">Staff Authentication</h1>
+      <p class="page-subtitle">
+        Secure role-based access with multi-factor authentication (TOTP).
+      </p>
+
+      <div id="message"></div>
+
+      <!-- STEP 1: PASSWORD LOGIN -->
+      <section id="stepCredentials">
+        <div class="card card-narrow">
+          <div class="card-header">
+            <h2>Staff Login</h2>
+          </div>
+          <form id="credentialsForm">
+            <div class="form-group">
+              <label for="username">Username <span class="required-mark">*</span></label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="e.g. admin1, officer1, volunteer1"
+                autocomplete="username"
+                required>
+            </div>
+            <div class="form-group">
+              <label for="password">Password <span class="required-mark">*</span></label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter password"
+                autocomplete="current-password"
+                required>
+            </div>
+            <button type="submit" id="credentialsBtn" class="btn btn-primary btn-block">
+              Continue
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- STEP 2: MFA INITIAL SETUP (QR CODE SCAN) -->
+      <section id="stepMfaSetup" class="hidden">
+        <div class="card card-narrow">
+          <div class="card-header">
+            <h2>Set Up Multi-Factor Authentication</h2>
+          </div>
+          <p style="margin-bottom: 1rem; color: #555;">
+            Scan this QR code with <strong>Google Authenticator</strong> or <strong>Microsoft Authenticator</strong> on your phone.
+          </p>
+          <div style="text-align: center; margin: 1.5rem 0;">
+            <img id="mfaQrImg" src="" alt="MFA QR Code" style="max-width: 220px; border: 1px solid #ddd; border-radius: 8px; padding: 8px; background: #fff;">
+          </div>
+          <form id="mfaSetupForm">
+            <div class="form-group">
+              <label for="setupTotpCode">6-Digit Authenticator Code <span class="required-mark">*</span></label>
+              <input
+                type="text"
+                id="setupTotpCode"
+                name="setupTotpCode"
+                placeholder="123456"
+                maxlength="6"
+                pattern="[0-9]{6}"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                required>
+            </div>
+            <button type="submit" id="verifySetupBtn" class="btn btn-primary btn-block">
+              Verify & Enable MFA
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- STEP 3: MFA VERIFY (STANDARD LOGIN) -->
+      <section id="stepMfaVerify" class="hidden">
+        <div class="card card-narrow">
+          <div class="card-header">
+            <h2>Two-Factor Verification</h2>
+          </div>
+          <p style="margin-bottom: 1rem; color: #555;">
+            Enter the 6-digit verification code from your authenticator app.
+          </p>
+          <form id="mfaVerifyForm">
+            <div class="form-group">
+              <label for="totpCode">6-Digit Code <span class="required-mark">*</span></label>
+              <input
+                type="text"
+                id="totpCode"
+                name="totpCode"
+                placeholder="123456"
+                maxlength="6"
+                pattern="[0-9]{6}"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                required>
+            </div>
+            <button type="submit" id="verifyBtn" class="btn btn-primary btn-block">
+              Verify Code & Login
+            </button>
+          </form>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div class="container">
+      <p class="mb-0">&copy; 2026 Blood Donor Management System &mdash; Academic Project</p>
+      <p class="footer-disclaimer">
+        Disclaimer: This is a record-keeping prototype. Staff portal is restricted to authorized healthcare personnel and volunteers.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('navToggle').addEventListener('click', function () {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  </script>
+  <script src="js/config.js"></script>
+  <script src="js/login.js"></script>
+
+</body>
+</html>

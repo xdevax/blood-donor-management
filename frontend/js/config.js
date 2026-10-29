@@ -4,12 +4,33 @@
    ============================================================ */
 
 /* ------------------------------------------------------------
-   DEPLOYMENT: THIS IS THE ONE LINE TO CHANGE IN CHAT 11.
-   Local development  -> 'http://localhost:5000'
-   Deployed backend   -> 'https://your-app-name.onrender.com'
+   DEPLOYMENT:
+   Local development (localhost or 127.0.0.1) -> 'http://localhost:8080'
+   Deployed backend (Netlify/production)     -> 'https://blood-donor-api-q1jg.onrender.com'
    No trailing slash.
    ------------------------------------------------------------ */
-const API_BASE_URL = 'https://blood-donor-api-q1jg.onrender.com';
+const API_BASE_URL = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+  ? 'http://localhost:8080'
+  : 'https://blood-donor-api-q1jg.onrender.com';
+
+
+/* ============================================================
+   Auth Helpers
+   ============================================================ */
+function getAuthUser() {
+  try {
+    const raw = localStorage.getItem('authUser');
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function logout() {
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('authUser');
+  window.location.href = 'login.html';
+}
 
 
 /* ============================================================
@@ -17,7 +38,7 @@ const API_BASE_URL = 'https://blood-donor-api-q1jg.onrender.com';
    ------------------------------------------------------------
    One wrapper around fetch() used by EVERY page.
    - endpoint: path only, e.g. '/api/donors'
-   - options : { method, body }  (body is a plain object, not a string)
+   - options : { method, body, token }  (body is a plain object)
 
    ALWAYS returns an object shaped like:
      { ok, status, success, data, message, count }
@@ -31,6 +52,12 @@ async function apiRequest(endpoint, options = {}) {
     headers: { 'Content-Type': 'application/json' }
   };
 
+  // Add Authorization header if a token is provided directly or stored in localStorage
+  const authToken = options.token || (typeof localStorage !== 'undefined' ? localStorage.getItem('authToken') : null);
+  if (authToken) {
+    config.headers['Authorization'] = 'Bearer ' + authToken;
+  }
+
   // Only GET/DELETE have no body. Convert the object to a JSON string.
   if (options.body) {
     config.body = JSON.stringify(options.body);
@@ -40,13 +67,28 @@ async function apiRequest(endpoint, options = {}) {
     const response = await fetch(url, config);   // wait for the server
     const result = await response.json();        // wait for the JSON body
 
+    // If unauthorized (401), clear invalid/expired stored credentials
+    if (response.status === 401 && typeof localStorage !== 'undefined' && !options.token) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
+    }
+
     return {
       ok: response.ok,                 // true for status 200-299
-      status: response.status,         // 200, 201, 400, 401, 404, 409, 500
+      status: response.status,         // 200, 201, 400, 401, 403, 404, 409, 500
       success: result.success,         // the backend's own flag
       data: result.data,
       message: result.message,
-      count: result.count
+      count: result.count,
+      // Pass through MFA fields from auth responses
+      mfaRequired: result.mfaRequired,
+      mfaSetupRequired: result.mfaSetupRequired,
+      setupToken: result.setupToken,
+      mfaToken: result.mfaToken,
+      qrDataUrl: result.qrDataUrl,
+      otpauth: result.otpauth,
+      token: result.token,
+      user: result.user
     };
   } catch (error) {
     // Reached only if the network call itself failed:
@@ -109,15 +151,6 @@ function hideLoading() {
 
 /* ============================================================
    escapeHtml(str)  ***SECURITY***
-   ------------------------------------------------------------
-   Converts dangerous characters into harmless HTML entities
-   BEFORE any database value is placed into innerHTML.
-
-   Without it, a donor saved with the name
-       <script>alert('hacked')</script>
-   would EXECUTE in the browser of every user viewing the list.
-   That attack is called stored XSS (Cross-Site Scripting).
-   With it, the same text is displayed literally as characters.
    ============================================================ */
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
@@ -132,7 +165,6 @@ function escapeHtml(str) {
 
 /* ============================================================
    formatDate(isoString) -> 'DD Mon YYYY' for DISPLAY in tables
-   Example: '2024-03-15T00:00:00.000Z'  ->  '15 Mar 2024'
    ============================================================ */
 function formatDate(isoString) {
   if (!isoString) return '—';
@@ -146,10 +178,6 @@ function formatDate(isoString) {
 
 /* ============================================================
    toInputDate(isoString) -> 'YYYY-MM-DD' for <input type="date">
-   ------------------------------------------------------------
-   A date input REFUSES a full ISO timestamp and silently shows
-   blank, so every edit form must run values through this first.
-   Example: '2024-03-15T00:00:00.000Z'  ->  '2024-03-15'
    ============================================================ */
 function toInputDate(isoString) {
   if (!isoString) return '';
@@ -160,29 +188,53 @@ function toInputDate(isoString) {
 /* ============================================================
    Badge builders — reuse existing CSS classes only.
    ============================================================ */
-
-// Request status: Open | Fulfilled | Cancelled
 function badgeForStatus(status) {
   const safe = escapeHtml(status);
   const key = String(status || '').toLowerCase();
   return '<span class="badge badge-' + key + '">' + safe + '</span>';
 }
 
-// Urgency: High | Medium | Low
 function badgeForUrgency(urgency) {
   const safe = escapeHtml(urgency);
   const key = String(urgency || '').toLowerCase();
   return '<span class="badge badge-' + key + '">' + safe + '</span>';
 }
 
-// Donor availability: true -> Available, false -> Unavailable
 function availabilityBadge(isAvailable) {
   return isAvailable
     ? '<span class="badge badge-available">Available</span>'
     : '<span class="badge badge-unavailable">Unavailable</span>';
 }
 
-// Blood group pill
 function bloodBadge(group) {
   return '<span class="badge badge-blood">' + escapeHtml(group) + '</span>';
 }
+
+
+/* ============================================================
+   Dynamic Staff Navigation Enhancer
+   Appends Staff Login / Staff Logout link to navbar.
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', function () {
+  const navLinks = document.getElementById('navLinks');
+  if (!navLinks) return;
+
+  const user = getAuthUser();
+  const li = document.createElement('li');
+
+  if (user && user.username) {
+    li.innerHTML = '<a href="#" id="staffLogoutLink" style="font-weight: 600; color: #ffc107;">Logout (' + escapeHtml(user.username) + ' - ' + escapeHtml(user.role) + ')</a>';
+    navLinks.appendChild(li);
+    const link = document.getElementById('staffLogoutLink');
+    if (link) {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        logout();
+      });
+    }
+  } else {
+    const isLogin = window.location.pathname.endsWith('login.html');
+    li.innerHTML = '<a href="login.html"' + (isLogin ? ' class="active"' : '') + '>Staff Login</a>';
+    navLinks.appendChild(li);
+  }
+});

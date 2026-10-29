@@ -7,6 +7,7 @@
 
 const express = require('express');
 const router = express.Router();
+const { requireAuth, requireRole } = require('../middleware/auth');
 
 // Import the five controller functions.
 // These names must match the exports in donorController.js EXACTLY.
@@ -31,14 +32,14 @@ router
 // ------------------------------------------------------------
 //  Routes for  /api/donors/:id
 //    GET    -> fetch one donor
-//    PUT    -> update one donor
-//    DELETE -> remove one donor
+//    PUT    -> update one donor (admin and bloodbank_officer only)
+//    DELETE -> remove one donor (admin only)
 // ------------------------------------------------------------
 router
   .route('/:id')
   .get(getDonorById)
-  .put(updateDonor)
-  .delete(deleteDonor);
+  .put(requireAuth('access'), requireRole('admin', 'bloodbank_officer'), updateDonor)
+  .delete(requireAuth('access'), requireRole('admin'), deleteDonor);
 
 // Export the router so server.js can mount it.
 module.exports = router;

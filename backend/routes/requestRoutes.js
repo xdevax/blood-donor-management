@@ -7,13 +7,10 @@
 
 const express = require('express');
 const router = express.Router();
+const { requireAuth, requireRole } = require('../middleware/auth');
 
 // Import the five controller functions.
 // These names must match the exports in requestController.js EXACTLY.
-// A single typo here (e.g. getAllRequest instead of getAllRequests)
-// makes the imported value undefined, and Express crashes on startup
-// with: "Route.get() requires a callback function but got a
-// [object Undefined]"
 const {
   createRequest,
   getAllRequests,
@@ -36,15 +33,14 @@ router
 // ------------------------------------------------------------
 //  Routes for  /api/requests/:id
 //    GET    -> fetch one request
-//    PUT    -> update one request (usually the status field:
-//              Open -> Fulfilled / Cancelled)
-//    DELETE -> remove one request
+//    PUT    -> update one request (admin and bloodbank_officer only)
+//    DELETE -> remove one request (admin only)
 // ------------------------------------------------------------
 router
   .route('/:id')
   .get(getRequestById)
-  .put(updateRequest)
-  .delete(deleteRequest);
+  .put(requireAuth('access'), requireRole('admin', 'bloodbank_officer'), updateRequest)
+  .delete(requireAuth('access'), requireRole('admin'), deleteRequest);
 
 // Export the router so server.js can mount it.
 module.exports = router;
