@@ -33,4 +33,5 @@ Thumbs.db
 dist/
 build/
 coverage/
-.cache/
+.cache/results/q2/qr-*.png
+results/q2/*token*.txt
